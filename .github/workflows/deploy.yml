@@ -1,0 +1,44 @@
+name: Deploy AIC Exam Portal
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # allow manual trigger from GitHub UI
+
+permissions:
+  contents: write      # needed to push to gh-pages branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      # ── 1. Checkout source ───────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Inject secrets into app.js at build time ─────────────────────────
+      #   PROXY_ENDPOINT is stored as a GitHub Secret — never in source code.
+      #   The build step replaces the placeholder token with the real value.
+      - name: Inject Cloudflare Worker proxy URL
+        env:
+          PROXY_ENDPOINT: ${{ secrets.PROXY_ENDPOINT }}
+        run: |
+          if [ -z "$PROXY_ENDPOINT" ]; then
+            echo "⚠️  PROXY_ENDPOINT secret not set — portal will run in simulation mode"
+          else
+            echo "✅ Injecting PROXY_ENDPOINT into app.js"
+            sed -i "s|__PROXY_ENDPOINT__|${PROXY_ENDPOINT}|g" js/app.js
+          fi
+
+      # ── 3. Deploy to GitHub Pages (gh-pages branch) ──────────────────────────
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          exclude_assets: '.github,README.md,build.sh'
+          commit_message: "Deploy: ${{ github.sha }} — ${{ github.event.head_commit.message }}"
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
