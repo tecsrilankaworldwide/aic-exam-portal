@@ -6,7 +6,7 @@
 // OTP is sent via a server-side PHP proxy on Namecheap hosting.
 // Notify.lk credentials are stored in otp-proxy.php — never in browser JS.
 const NOTIFY_CONFIG = {
-  PROXY_ENDPOINT: 'https://aigeneration.uk/otp-proxy.php'
+  PROXY_ENDPOINT: 'https://aigeneration.uk/exam/otp-proxy.php'
 };
 
 // ── NIC VALIDATION ─────────────────────────────────────────────────────────────
