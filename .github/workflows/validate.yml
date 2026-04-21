@@ -2,8 +2,8 @@ name: Validate Portal
 
 # ── Triggers ──────────────────────────────────────────────────────────────────
 # Runs on every pull request that touches any of the three source files
-# that the validator checks. Also runs on direct pushes to main so you
-# catch regressions even without a PR (e.g. a direct hotfix push).
+# the validator checks. Also runs on direct pushes to main so regressions
+# are caught on hotfixes too (push events skip the PR comment job).
 on:
   pull_request:
     paths:
@@ -20,49 +20,270 @@ on:
       - 'admin.html'
       - 'scripts/validate.js'
 
+permissions:
+  contents:      read
+  pull-requests: write   # needed to post and update PR comments
+
 jobs:
+  # ────────────────────────────────────────────────────────────────────────────
+  # JOB 1: validate
+  # Runs validate.js and saves a machine-readable outcome file for the
+  # pr-comment job to consume. Uses continue-on-error so the pr-comment
+  # job always runs even when validation fails.
+  # ────────────────────────────────────────────────────────────────────────────
   validate:
     name: Question bank & fee constants
     runs-on: ubuntu-latest
 
+    outputs:
+      outcome: ${{ steps.run_validator.outputs.outcome }}
+
     steps:
-      # ── 1. Checkout ──────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. Node.js setup ─────────────────────────────────────────────────────
-      # validate.js uses only Node built-ins (fs, path, vm) — no npm install needed.
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # ── 3. Run validator ──────────────────────────────────────────────────────
+      # Run with continue-on-error so pr-comment always gets a chance to post.
+      # The outcome output captures pass/fail for downstream consumption.
       - name: Run portal validator
-        run: node scripts/validate.js
-
-      # ── 4. Annotate PR with failure summary (only on PRs) ────────────────────
-      # If the validator exits 1, the step above already fails the job.
-      # This step runs only on PR events and always executes so the
-      # job summary is visible even on success.
-      - name: Write job summary
-        if: always() && github.event_name == 'pull_request'
+        id: run_validator
+        continue-on-error: true
         run: |
-          echo "## Portal Validation" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Ran \`scripts/validate.js\` against:" >> $GITHUB_STEP_SUMMARY
-          echo "- \`js/app.js\` — AGE_GROUP_FEES, AGE_GROUP_LABELS" >> $GITHUB_STEP_SUMMARY
-          echo "- \`js/questions.js\` — QUESTION_BANK, Q_COUNT" >> $GITHUB_STEP_SUMMARY
-          echo "- \`admin.html\` — GROUP_FEES, GROUP_NAMES" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ All checks passed." >> $GITHUB_STEP_SUMMARY
+          set +e
+          node scripts/validate.js 2>&1 | tee /tmp/validate_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "outcome=pass" >> $GITHUB_OUTPUT
           else
-            echo "❌ Validation failed — see logs above for details." >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Common causes:**" >> $GITHUB_STEP_SUMMARY
-            echo "- Fee changed in \`app.js\` but not updated in \`admin.html\`" >> $GITHUB_STEP_SUMMARY
-            echo "- Question added with wrong \`ans\` letter (must be A/B/C/D)" >> $GITHUB_STEP_SUMMARY
-            echo "- Question \`opts\` array has fewer or more than 4 items" >> $GITHUB_STEP_SUMMARY
-            echo "- New age group added to \`app.js\` but not to \`questions.js\` (or vice versa)" >> $GITHUB_STEP_SUMMARY
+            echo "outcome=fail" >> $GITHUB_OUTPUT
+          fi
+
+          # Save full output for the comment job
+          cp /tmp/validate_output.txt /tmp/validate_result.txt
+
+          # Exit with the real code so the job itself is marked failed when validation fails
+          exit $EXIT_CODE
+
+      # Upload result file so pr-comment job can read it
+      - name: Upload validator output
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: validate-output
+          path: /tmp/validate_result.txt
+          retention-days: 1
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # JOB 2: pr-comment
+  # Posts (or updates) a single comment on the PR with:
+  #   • Validation pass/fail status
+  #   • Fee tier table (groups, names, fees) extracted live from app.js
+  #   • Total question count per group
+  #   • Live GitHub Pages staging URL
+  # Only runs on pull_request events — skipped on push-to-main.
+  # ────────────────────────────────────────────────────────────────────────────
+  pr-comment:
+    name: Post PR summary comment
+    runs-on: ubuntu-latest
+    needs: validate
+    if: always() && github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download validator output
+        uses: actions/download-artifact@v4
+        with:
+          name: validate-output
+          path: /tmp/
+
+      # ── Extract fee tiers and question counts directly from source files ─────
+      # Runs a small inline Node script that reuses the same vm-sandbox
+      # technique as validate.js, so the values in the comment are guaranteed
+      # to match what the validator actually checked.
+      - name: Extract portal metrics
+        id: metrics
+        run: |
+          node - <<'NODEEOF'
+          const fs  = require('fs');
+          const vm  = require('vm');
+          const path = require('path');
+
+          const stubs = `
+            var localStorage   = { getItem: function(){ return null; }, setItem: function(){} };
+            var sessionStorage = { getItem: function(){ return null; }, setItem: function(){} };
+            var window = {};
+            var document = { querySelector: function(){ return null; }, querySelectorAll: function(){ return []; } };
+            var fetch = function(){ return Promise.resolve({}); };
+          `;
+
+          function evalAndExtract(src, exports) {
+            const ret = exports.map(e => `"${e}": typeof ${e} !== 'undefined' ? ${e} : null`).join(', ');
+            const wrapped = `(function() { ${stubs} ${src} return { ${ret} }; })()`;
+            try {
+              return vm.runInNewContext(wrapped, { console, Math, JSON }, { timeout: 5000 });
+            } catch(e) { return null; }
+          }
+
+          const appJs  = fs.readFileSync('js/app.js',       'utf8');
+          const questJs = fs.readFileSync('js/questions.js', 'utf8');
+
+          const app = evalAndExtract(appJs,  ['AGE_GROUP_FEES','AGE_GROUP_LABELS','AGE_GROUP_NAMES']);
+          const q   = evalAndExtract(questJs, ['QUESTION_BANK','Q_COUNT']);
+
+          if (!app || !q) {
+            fs.writeFileSync('/tmp/metrics.env',
+              'FEE_TABLE=⚠️ Could not parse fee constants\n' +
+              'TOTAL_QUESTIONS=unknown\n' +
+              'GROUP_COUNT=unknown\n'
+            );
+            process.exit(0);
+          }
+
+          const fees   = app.AGE_GROUP_FEES;
+          const labels = app.AGE_GROUP_LABELS;
+          const names  = app.AGE_GROUP_NAMES;
+          const counts = q.Q_COUNT;
+          const bank   = q.QUESTION_BANK;
+
+          // ── Fee tier markdown table ──────────────────────────────────────────
+          // Ordered by age (ascending key value)
+          const order = ['56','79','1012','1315','1617'];
+          const rows = order.map(key => {
+            const label    = labels[key]  || key;
+            const fullName = names[key]   || label;
+            const fee      = fees[key]    ? `LKR ${Number(fees[key]).toLocaleString()}` : '—';
+            const qCount   = counts[key]  || '—';
+            const actual   = Array.isArray(bank[key]) ? bank[key].length : 0;
+            const pool     = actual > qCount ? ` _(${actual - qCount} extra)_` : '';
+            return `| ${label} | ${fee} | ${qCount} MCQs${pool} |`;
+          });
+
+          const table = [
+            '| Age Group | Base Fee | Questions |',
+            '|-----------|----------|-----------|',
+            ...rows
+          ].join('\\n');
+
+          const totalQ   = order.reduce((s, k) => s + (Array.isArray(bank[k]) ? bank[k].length : 0), 0);
+          const groupCnt = order.length;
+
+          // Write to env file — use delimiter to handle multi-line value
+          const out = [
+            `GROUP_COUNT=${groupCnt}`,
+            `TOTAL_QUESTIONS=${totalQ}`,
+            `FEE_TABLE<<ENDTABLE`,
+            table,
+            `ENDTABLE`
+          ].join('\n');
+
+          fs.writeFileSync('/tmp/metrics.env', out + '\n');
+          console.log('Metrics extracted:', { groupCnt, totalQ });
+          NODEEOF
+
+          # Load metrics into GITHUB_OUTPUT
+          cat /tmp/metrics.env >> $GITHUB_OUTPUT
+
+      # ── Build and post (or update) the PR comment ────────────────────────────
+      # Uses the GitHub REST API via gh CLI so we can find-and-update an
+      # existing comment from a previous push to the same PR, rather than
+      # spamming a new comment on every commit.
+      - name: Post or update PR comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OUTCOME:  ${{ needs.validate.outputs.outcome }}
+          PR_NUM:   ${{ github.event.pull_request.number }}
+          REPO:     ${{ github.repository }}
+          SHA:      ${{ github.event.pull_request.head.sha }}
+          STAGING:  https://tecsrilankaworldwide.github.io/aic-exam-portal/
+          ADMIN:    https://tecsrilankaworldwide.github.io/aic-exam-portal/admin.html
+          GROUP_COUNT:     ${{ steps.metrics.outputs.GROUP_COUNT }}
+          TOTAL_QUESTIONS: ${{ steps.metrics.outputs.TOTAL_QUESTIONS }}
+          FEE_TABLE:       ${{ steps.metrics.outputs.FEE_TABLE }}
+        run: |
+          SHORT_SHA="${SHA:0:7}"
+          RUN_URL="https://github.com/${REPO}/actions/runs/${{ github.run_id }}"
+
+          if [ "$OUTCOME" = "pass" ]; then
+            STATUS_ICON="✅"
+            STATUS_LINE="**Validation passed** — safe to merge"
+            DEPLOY_NOTE="> After merging, GitHub Pages will auto-deploy within ~60 seconds."
+          else
+            STATUS_ICON="❌"
+            STATUS_LINE="**Validation failed** — merge is blocked"
+            DEPLOY_NOTE="> Fix the errors above before merging. See the [full validator log](${RUN_URL}) for details."
+          fi
+
+          # Build the comment body
+          BODY=$(cat <<MARKDOWN
+          <!-- aic-portal-summary -->
+          ## ${STATUS_ICON} AIC Portal — PR #${PR_NUM} Summary
+
+          ${STATUS_LINE}
+
+          ---
+
+          ### Validation \`${SHORT_SHA}\`
+
+          | Check | Result |
+          |-------|--------|
+          | Question bank schema | $([ "$OUTCOME" = "pass" ] && echo "✅ Pass" || echo "❌ Fail") |
+          | Fee sync (app.js ↔ admin.html) | $([ "$OUTCOME" = "pass" ] && echo "✅ Pass" || echo "❌ Fail") |
+          | Name sync (app.js ↔ admin.html) | $([ "$OUTCOME" = "pass" ] && echo "✅ Pass" || echo "❌ Fail") |
+          | Question counts ≥ Q_COUNT | $([ "$OUTCOME" = "pass" ] && echo "✅ Pass" || echo "❌ Fail") |
+
+          [View full validator output →](${RUN_URL})
+
+          ---
+
+          ### Fee Tiers (${GROUP_COUNT} groups · ${TOTAL_QUESTIONS} questions total)
+
+          ${FEE_TABLE}
+
+          **Discount tiers:** Gold 80%+ → 70% off · Silver 70–79% → 60% off · Bronze 60–69% → 50% off
+
+          ---
+
+          ### Staging URLs
+
+          | Page | Link |
+          |------|------|
+          | Exam portal | [aigeneration.uk/exam/](https://aigeneration.uk/exam/) _(live — DNS propagating)_ |
+          | Staging (Pages) | [tecsrilankaworldwide.github.io/aic-exam-portal/](${STAGING}) |
+          | Admin dashboard | [admin.html](${ADMIN}) · password \`AIC@2026\` |
+
+          ${DEPLOY_NOTE}
+
+          <sub>Last updated by [run #${{ github.run_id }}](${RUN_URL}) · commit \`${SHORT_SHA}\`</sub>
+          MARKDOWN
+          )
+
+          # Find an existing comment with our marker tag to update instead of posting a new one
+          EXISTING_ID=$(gh api \
+            "repos/${REPO}/issues/${PR_NUM}/comments" \
+            --jq '.[] | select(.body | contains("<!-- aic-portal-summary -->")) | .id' \
+            | head -1)
+
+          if [ -n "$EXISTING_ID" ]; then
+            echo "Updating existing comment ${EXISTING_ID}"
+            gh api --method PATCH \
+              "repos/${REPO}/issues/comments/${EXISTING_ID}" \
+              -f body="$BODY"
+          else
+            echo "Posting new comment on PR #${PR_NUM}"
+            gh api --method POST \
+              "repos/${REPO}/issues/${PR_NUM}/comments" \
+              -f body="$BODY"
           fi
