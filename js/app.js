@@ -3,11 +3,10 @@
 //          index number generation, localStorage helpers, discount calculation
 
 // ── CONFIGURATION ─────────────────────────────────────────────────────────────
-// OTP is sent via a Cloudflare Worker proxy — credentials stored server-side as Cloudflare Secrets.
-// PROXY_ENDPOINT is injected at deploy time by GitHub Actions from the PROXY_ENDPOINT repo secret.
-// It is never stored in plain text in source code.
+// OTP is sent via a server-side PHP proxy on Namecheap hosting.
+// Notify.lk credentials are stored in otp-proxy.php — never in browser JS.
 const NOTIFY_CONFIG = {
-  PROXY_ENDPOINT: '__PROXY_ENDPOINT__'
+  PROXY_ENDPOINT: 'https://aigeneration.uk/otp-proxy.php'
 };
 
 // ── NIC VALIDATION ─────────────────────────────────────────────────────────────
@@ -73,8 +72,8 @@ async function sendOTP(phone, otp, studentName) {
 
   const proxyEndpoint = NOTIFY_CONFIG.PROXY_ENDPOINT;
 
-  // Simulation mode — if proxy not yet deployed or secret not yet injected
-  if (!proxyEndpoint || proxyEndpoint === '__PROXY_ENDPOINT__' || proxyEndpoint.includes('YOUR-SUBDOMAIN')) {
+  // Simulation mode — if proxy not yet deployed
+  if (!proxyEndpoint || proxyEndpoint.includes('YOUR-SUBDOMAIN') || proxyEndpoint.includes('__PROXY')) {
     console.info('[AIC OTP SIMULATION] OTP:', otp, '| Phone:', phone);
     sessionStorage.setItem('aic_otp_simulated', 'true');
     return { ok: true, msg: 'OTP simulated (proxy not yet deployed)', simulated: true };
