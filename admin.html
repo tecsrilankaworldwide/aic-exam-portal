@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — AIC Exam Portal 2026</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  /* ── Admin specific ── */
+  .admin-layout{display:grid;grid-template-columns:220px 1fr;min-height:100dvh}
+  @media(max-width:768px){.admin-layout{grid-template-columns:1fr}}
+  /* Sidebar nav */
+  .admin-nav{background:var(--surface);border-right:1px solid var(--border);
+    padding:var(--s6);position:sticky;top:0;height:100dvh;overflow-y:auto}
+  @media(max-width:768px){.admin-nav{display:none}}
+  .admin-nav .brand{display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s8);
+    font-family:var(--font-display);font-weight:700;font-size:var(--text-sm)}
+  .nav-section{font-size:var(--text-xs);font-weight:700;text-transform:uppercase;
+    letter-spacing:.07em;color:var(--muted);margin-bottom:var(--s3);padding-left:var(--s2)}
+  .nav-item{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s3);
+    border-radius:var(--r-lg);font-size:var(--text-sm);font-weight:500;color:var(--muted);
+    cursor:pointer;transition:all var(--ease);margin-bottom:var(--s1)}
+  .nav-item:hover{background:var(--surface-off);color:var(--text)}
+  .nav-item.active{background:var(--primary-lit);color:var(--primary);font-weight:600}
+  .nav-item svg{flex-shrink:0}
+  .nav-divider{height:1px;background:var(--divider);margin:var(--s4) 0}
+  /* Main content */
+  .admin-main{padding:var(--s8);overflow-x:auto}
+  .admin-top{display:flex;align-items:center;justify-content:space-between;
+    gap:var(--s4);margin-bottom:var(--s8);flex-wrap:wrap}
+  .admin-title{font-size:var(--text-xl);font-weight:700}
+  .admin-sub{font-size:var(--text-sm);color:var(--muted);margin-top:var(--s1)}
+  /* KPI cards */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s4);margin-bottom:var(--s8)}
+  @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.kpi-grid{grid-template-columns:1fr}}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-2xl);
+    padding:var(--s6);position:relative;overflow:hidden}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r-full)}
+  .kpi-card.teal::before{background:var(--primary)}
+  .kpi-card.green::before{background:var(--green)}
+  .kpi-card.amber::before{background:var(--amber)}
+  .kpi-card.purple::before{background:var(--purple)}
+  .kpi-val{font-family:var(--font-display);font-size:var(--text-2xl);font-weight:700;
+    color:var(--text);margin-bottom:var(--s1)}
+  .kpi-lbl{font-size:var(--text-xs);color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .kpi-sub{font-size:var(--text-xs);color:var(--muted);margin-top:var(--s2)}
+  /* Tab bar */
+  .tab-bar{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:var(--s6)}
+  .tab{padding:var(--s3) var(--s5);font-size:var(--text-sm);font-weight:600;
+    color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;
+    transition:all var(--ease)}
+  .tab:hover{color:var(--text)}
+  .tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+  /* Table */
+  .data-table-wrap{overflow-x:auto;border-radius:var(--r-xl);border:1px solid var(--border)}
+  .data-table{width:100%;font-size:var(--text-xs);border-collapse:collapse}
+  .data-table th{background:var(--surface-off);padding:var(--s3) var(--s4);
+    text-align:left;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--muted);white-space:nowrap;border-bottom:1px solid var(--border)}
+  .data-table td{padding:var(--s3) var(--s4);border-bottom:1px solid var(--divider);
+    vertical-align:middle;white-space:nowrap}
+  .data-table tr:last-child td{border-bottom:none}
+  .data-table tr:hover td{background:var(--surface-off)}
+  .data-table .index-cell{font-family:var(--font-display);font-weight:700;color:var(--primary);font-size:var(--text-xs)}
+  /* Score pill */
+  .score-pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:var(--r-full);
+    font-weight:700;font-size:.65rem}
+  .score-pill.gold{background:var(--gold-bg);color:var(--gold)}
+  .score-pill.silver{background:var(--blue-bg);color:var(--blue)}
+  .score-pill.bronze{background:var(--amber-bg);color:var(--amber)}
+  .score-pill.none{background:var(--surface-off);color:var(--muted)}
+  /* Toolbar */
+  .table-toolbar{display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s4);flex-wrap:wrap}
+  .search-box{display:flex;align-items:center;gap:var(--s2);background:var(--surface);
+    border:1.5px solid var(--border);border-radius:var(--r-lg);padding:var(--s2) var(--s4);
+    flex:1;min-width:200px}
+  .search-box input{border:none;background:none;outline:none;font-size:var(--text-sm);
+    color:var(--text);width:100%}
+  .filter-select{padding:var(--s2) var(--s4);border:1.5px solid var(--border);
+    border-radius:var(--r-lg);background:var(--surface);color:var(--text);
+    font-size:var(--text-sm);cursor:pointer}
+  .filter-select:focus{border-color:var(--primary);outline:none}
+  /* Empty state */
+  .empty-state{text-align:center;padding:var(--s16) var(--s8);color:var(--muted)}
+  .empty-state svg{margin:0 auto var(--s4);opacity:.3}
+  .empty-state p{font-size:var(--text-sm)}
+  /* Fee summary */
+  .fee-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s4);margin-bottom:var(--s6)}
+  @media(max-width:600px){.fee-summary{grid-template-columns:1fr}}
+  .fee-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:var(--s5)}
+  .fee-box .val{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:var(--primary)}
+  .fee-box .lbl{font-size:var(--text-xs);color:var(--muted);margin-top:var(--s1)}
+  /* Bar chart */
+  .bar-chart{display:flex;flex-direction:column;gap:var(--s3)}
+  .bar-row{display:flex;align-items:center;gap:var(--s3)}
+  .bar-label{font-size:var(--text-xs);color:var(--muted);min-width:140px;text-align:right}
+  .bar-outer{flex:1;height:24px;background:var(--surface-off);border-radius:var(--r-full);overflow:hidden}
+  .bar-inner{height:100%;border-radius:var(--r-full);background:var(--primary);
+    display:flex;align-items:center;padding-left:var(--s3);
+    font-size:.6rem;font-weight:700;color:#fff;transition:width .8s cubic-bezier(.16,1,.3,1)}
+  .bar-val{font-size:var(--text-xs);color:var(--text);min-width:30px;font-weight:600}
+  /* Login screen */
+  .login-overlay{position:fixed;inset:0;background:var(--bg);z-index:500;
+    display:flex;align-items:center;justify-content:center;padding:var(--s8)}
+  .login-card{max-width:380px;width:100%;text-align:center}
+  /* Group colour accents */
+  .g56{color:var(--amber)}.g79{color:var(--blue)}.g1012{color:var(--green)}.g1315{color:var(--purple)}.g1617{color:var(--teal,var(--primary))}
+  /* Section panel */
+  .panel{display:none}
+  .panel.active{display:block}
+  /* CSV export row */
+  .export-bar{display:flex;gap:var(--s3);flex-wrap:wrap;margin-bottom:var(--s5)}
+  /* Fee structure table */
+  .fee-struct{width:100%;font-size:var(--text-sm);border-collapse:collapse}
+  .fee-struct th,.fee-struct td{padding:var(--s3) var(--s5);border-bottom:1px solid var(--divider);text-align:left}
+  .fee-struct th{font-weight:700;color:var(--muted);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.05em}
+  .fee-struct td:last-child,.fee-struct th:last-child{text-align:right}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN OVERLAY ─────────────────────────────────────────────────────── -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div class="card">
+      <div style="margin-bottom:var(--s6)">
+        <svg width="48" height="48" viewBox="0 0 32 32" fill="none" style="margin:0 auto var(--s4)">
+          <rect width="32" height="32" rx="8" fill="var(--primary)"/>
+          <path d="M16 6 L8 22 L12 22 L14 17 L18 17 L20 22 L24 22 Z M14.5 14 L16 10.5 L17.5 14 Z" fill="white"/>
+          <circle cx="24" cy="10" r="3" fill="#4fc3ca"/>
+        </svg>
+        <h2 style="font-size:var(--text-xl);font-weight:700;margin-bottom:var(--s2)">Admin Login</h2>
+        <p style="font-size:var(--text-sm);color:var(--muted)">AIC Exam Portal — Restricted Access</p>
+      </div>
+      <div class="field">
+        <label for="adminPass">Admin Password</label>
+        <input type="password" id="adminPass" placeholder="Enter password" autocomplete="current-password">
+        <div class="field-hint">Default password: <strong>AIC@2026</strong> — change after first login</div>
+      </div>
+      <div class="alert alert-error mt4 hidden" id="loginError">Incorrect password. Please try again.</div>
+      <button class="btn btn-primary btn-full mt6" onclick="doLogin()">Login to Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN DASHBOARD ─────────────────────────────────────────────────────── -->
+<div class="admin-layout" id="dashboardArea" style="display:none">
+
+  <!-- Sidebar -->
+  <nav class="admin-nav">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="var(--primary)"/>
+        <path d="M16 6 L8 22 L12 22 L14 17 L18 17 L20 22 L24 22 Z M14.5 14 L16 10.5 L17.5 14 Z" fill="white"/>
+        <circle cx="24" cy="10" r="3" fill="#4fc3ca"/>
+      </svg>
+      <span>AIC Admin</span>
+    </div>
+
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" onclick="showPanel('overview',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-section">Data</div>
+    <div class="nav-item" onclick="showPanel('registrations',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Registrations
+    </div>
+    <div class="nav-item" onclick="showPanel('results',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Exam Results
+    </div>
+    <div class="nav-item" onclick="showPanel('fees',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Fee Summary
+    </div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-section">Export</div>
+    <div class="nav-item" onclick="showPanel('export',this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export CSV
+    </div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-item" onclick="doLogout()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="admin-main">
+    <div class="admin-top">
+      <div>
+        <div class="admin-title" id="panelTitle">Dashboard Overview</div>
+        <div class="admin-sub" id="panelSub">AIC Aptitude Exam Portal 2026 — Live Data</div>
+      </div>
+      <div style="display:flex;gap:var(--s3);align-items:center">
+        <button class="btn btn-ghost" onclick="refreshAll()" style="font-size:var(--text-xs)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Refresh
+        </button>
+        <button class="theme-btn" data-theme-toggle aria-label="Toggle dark mode">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <a href="index.html" class="btn btn-ghost" style="font-size:var(--text-xs)">← Back to Portal</a>
+      </div>
+    </div>
+
+    <!-- ── OVERVIEW PANEL ── -->
+    <div class="panel active" id="panel-overview">
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s6)">
+        <div class="card">
+          <div style="font-size:var(--text-sm);font-weight:700;margin-bottom:var(--s5)">Registrations by Age Group</div>
+          <div class="bar-chart" id="groupBarChart"></div>
+        </div>
+        <div class="card">
+          <div style="font-size:var(--text-sm);font-weight:700;margin-bottom:var(--s5)">Score Distribution</div>
+          <div class="bar-chart" id="scoreBarChart"></div>
+        </div>
+      </div>
+
+      <div class="card mt8">
+        <div style="font-size:var(--text-sm);font-weight:700;margin-bottom:var(--s5)">Recent Registrations (Latest 5)</div>
+        <div class="data-table-wrap" id="recentTable"></div>
+      </div>
+    </div>
+
+    <!-- ── REGISTRATIONS PANEL ── -->
+    <div class="panel" id="panel-registrations">
+      <div class="table-toolbar">
+        <div class="search-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="regSearch" placeholder="Search name, NIC, index number…" oninput="filterRegs()">
+        </div>
+        <select class="filter-select" id="regGroupFilter" onchange="filterRegs()">
+          <option value="">All Age Groups</option>
+          <option value="56">Tiny Explorers (5–6)</option>
+          <option value="79">Little Explorers (7–9)</option>
+          <option value="1012">AI Builders (10–12)</option>
+          <option value="1315">AI Innovators (13–15)</option>
+          <option value="1617">AI Pioneers (16–17)</option>
+        </select>
+        <select class="filter-select" id="regStatusFilter" onchange="filterRegs()">
+          <option value="">All Status</option>
+          <option value="pending">Pending Exam</option>
+          <option value="completed">Completed</option>
+        </select>
+        <button class="btn btn-primary" onclick="exportRegistrationsCSV()" style="font-size:var(--text-xs)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+      <div class="data-table-wrap">
+        <table class="data-table" id="regTable">
+          <thead>
+            <tr>
+              <th>Index No.</th><th>Student Name</th><th>Age Group</th><th>DOB</th>
+              <th>School</th><th>Parent NIC</th><th>Mobile</th><th>District</th>
+              <th>Exam Status</th><th>Registered At</th>
+            </tr>
+          </thead>
+          <tbody id="regTbody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state hidden" id="regEmpty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <p>No registrations found.</p>
+      </div>
+    </div>
+
+    <!-- ── RESULTS PANEL ── -->
+    <div class="panel" id="panel-results">
+      <div class="table-toolbar">
+        <div class="search-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="resSearch" placeholder="Search index, name…" oninput="filterResults()">
+        </div>
+        <select class="filter-select" id="resGroupFilter" onchange="filterResults()">
+          <option value="">All Groups</option>
+          <option value="56">Tiny Explorers</option>
+          <option value="79">Little Explorers</option>
+          <option value="1012">AI Builders</option>
+          <option value="1315">AI Innovators</option>
+          <option value="1617">AI Pioneers</option>
+        </select>
+        <select class="filter-select" id="resDiscountFilter" onchange="filterResults()">
+          <option value="">All Tiers</option>
+          <option value="70">Gold (70%)</option>
+          <option value="60">Silver (60%)</option>
+          <option value="50">Bronze (50%)</option>
+          <option value="0">No Discount</option>
+        </select>
+        <button class="btn btn-primary" onclick="exportResultsCSV()" style="font-size:var(--text-xs)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+      <div class="data-table-wrap">
+        <table class="data-table" id="resTable">
+          <thead>
+            <tr>
+              <th>Index No.</th><th>Student Name</th><th>Age Group</th><th>Score %</th>
+              <th>Correct</th><th>Total Qs</th><th>Time Taken</th>
+              <th>Tier</th><th>Base Fee</th><th>Discount</th><th>Payable Fee</th><th>Submitted At</th>
+            </tr>
+          </thead>
+          <tbody id="resTbody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state hidden" id="resEmpty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <p>No exam results yet.</p>
+      </div>
+    </div>
+
+    <!-- ── FEE SUMMARY PANEL ── -->
+    <div class="panel" id="panel-fees">
+      <div class="fee-summary" id="feeSummaryBoxes"></div>
+      <div class="card" style="margin-bottom:var(--s6)">
+        <div style="font-size:var(--text-sm);font-weight:700;margin-bottom:var(--s5)">Fee Structure</div>
+        <table class="fee-struct">
+          <thead><tr><th>Age Group</th><th>Ages</th><th>Questions</th><th>Base Annual Fee</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge badge-amber">Tiny Explorers</span></td><td>5–6</td><td>15</td><td style="font-weight:700;color:var(--primary)">LKR 25,000</td></tr>
+            <tr><td><span class="badge badge-blue">Little Explorers</span></td><td>7–9</td><td>20</td><td style="font-weight:700;color:var(--primary)">LKR 40,000</td></tr>
+            <tr><td><span class="badge badge-green">AI Builders</span></td><td>10–12</td><td>30</td><td style="font-weight:700;color:var(--primary)">LKR 50,000</td></tr>
+            <tr><td><span class="badge badge-purple">AI Innovators</span></td><td>13–15</td><td>40</td><td style="font-weight:700;color:var(--primary)">LKR 65,000</td></tr>
+            <tr><td><span class="badge badge-teal">AI Pioneers</span></td><td>16–17</td><td>40</td><td style="font-weight:700;color:var(--primary)">LKR 80,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div style="font-size:var(--text-sm);font-weight:700;margin-bottom:var(--s3)">Scholarship Tiers</div>
+        <table class="fee-struct">
+          <thead><tr><th>Tier</th><th>Score Range</th><th>Discount</th></tr></thead>
+          <tbody>
+            <tr><td><span class="score-pill gold">🥇 Gold</span></td><td>80% and above</td><td style="font-weight:700;color:var(--green)">70% OFF</td></tr>
+            <tr><td><span class="score-pill silver">🥈 Silver</span></td><td>70% – 79%</td><td style="font-weight:700;color:var(--blue)">60% OFF</td></tr>
+            <tr><td><span class="score-pill bronze">🥉 Bronze</span></td><td>60% – 69%</td><td style="font-weight:700;color:var(--amber)">50% OFF</td></tr>
+            <tr><td><span class="score-pill none">No Scholarship</span></td><td>Below 60%</td><td style="color:var(--muted)">Full Fee</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── EXPORT PANEL ── -->
+    <div class="panel" id="panel-export">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s6)">
+        <div class="card">
+          <div style="font-size:var(--text-lg);font-weight:700;margin-bottom:var(--s3)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:6px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            Registrations CSV
+          </div>
+          <p style="font-size:var(--text-sm);color:var(--muted);margin-bottom:var(--s5)">
+            All registered students with parent/guardian details, age group, school, district, and exam status.
+          </p>
+          <div id="regCountBadge" class="badge badge-teal" style="margin-bottom:var(--s5)">0 records</div>
+          <div style="display:flex;flex-direction:column;gap:var(--s3)">
+            <button class="btn btn-primary" onclick="exportRegistrationsCSV()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download registrations.csv
+            </button>
+            <button class="btn btn-ghost" onclick="exportGroupCSV('56')">Export: Tiny Explorers only</button>
+            <button class="btn btn-ghost" onclick="exportGroupCSV('79')">Export: Little Explorers only</button>
+            <button class="btn btn-ghost" onclick="exportGroupCSV('1012')">Export: AI Builders only</button>
+            <button class="btn btn-ghost" onclick="exportGroupCSV('1315')">Export: AI Innovators only</button>
+            <button class="btn btn-ghost" onclick="exportGroupCSV('1617')">Export: AI Pioneers only</button>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-size:var(--text-lg);font-weight:700;margin-bottom:var(--s3)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:6px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Exam Results CSV
+          </div>
+          <p style="font-size:var(--text-sm);color:var(--muted);margin-bottom:var(--s5)">
+            All exam results including score, scholarship tier, base fee, discount amount, and final payable fee.
+          </p>
+          <div id="resCountBadge" class="badge badge-teal" style="margin-bottom:var(--s5)">0 records</div>
+          <div style="display:flex;flex-direction:column;gap:var(--s3)">
+            <button class="btn btn-primary" onclick="exportResultsCSV()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download exam_results.csv
+            </button>
+            <button class="btn btn-primary btn-success" onclick="exportCombinedCSV()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Download combined_report.csv
+            </button>
+            <button class="btn btn-ghost" onclick="exportDiscountCSV('70')">Export: Gold tier only</button>
+            <button class="btn btn-ghost" onclick="exportDiscountCSV('60')">Export: Silver tier only</button>
+            <button class="btn btn-ghost" onclick="exportDiscountCSV('50')">Export: Bronze tier only</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt8">
+        <div style="font-size:var(--text-sm);font-weight:700;margin-bottom:var(--s4)">Load Sample Data (for testing)</div>
+        <p style="font-size:var(--text-sm);color:var(--muted);margin-bottom:var(--s4)">
+          Populate the dashboard with sample registrations and exam results to preview all features.
+        </p>
+        <button class="btn btn-ghost" onclick="loadSampleData()">
+          Load Sample Data
+        </button>
+        <button class="btn btn-danger" style="margin-left:var(--s3)" onclick="clearAllData()">
+          Clear All Data
+        </button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+// ── THEME ────────────────────────────────────────────────────────────────────
+(function(){
+  const t=document.querySelector('[data-theme-toggle]'),r=document.documentElement;
+  let d=localStorage.getItem('aic_theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+  r.setAttribute('data-theme',d);
+  updateIcon(t,d);
+  t&&t.addEventListener('click',()=>{d=d==='dark'?'light':'dark';r.setAttribute('data-theme',d);localStorage.setItem('aic_theme',d);updateIcon(t,d);});
+  function updateIcon(btn,theme){if(!btn)return;btn.innerHTML=theme==='dark'?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>':'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';}
+})();
+
+// ── LOGIN ────────────────────────────────────────────────────────────────────
+const ADMIN_PASS = 'AIC@2026';
+function doLogin(){
+  const p=document.getElementById('adminPass').value;
+  if(p===ADMIN_PASS){
+    document.getElementById('loginOverlay').style.display='none';
+    document.getElementById('dashboardArea').style.display='grid';
+    sessionStorage.setItem('aic_admin_auth','1');
+    refreshAll();
+  } else {
+    document.getElementById('loginError').classList.remove('hidden');
+  }
+}
+document.getElementById('adminPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+function doLogout(){sessionStorage.removeItem('aic_admin_auth');location.reload();}
+// Auto-login if session active
+if(sessionStorage.getItem('aic_admin_auth')==='1'){
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('dashboardArea').style.display='grid';
+}
+
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const GROUP_NAMES={'56':'Tiny Explorers','79':'Little Explorers','1012':'AI Builders','1315':'AI Innovators','1617':'AI Pioneers'};
+const GROUP_FEES={'56':25000,'79':40000,'1012':50000,'1315':65000,'1617':80000};
+
+function getRegs(){return JSON.parse(localStorage.getItem('aic_registrations')||'[]');}
+function getResults(){return JSON.parse(localStorage.getItem('aic_exam_results')||'[]');}
+function fmtMoney(n){return 'Rs. '+Number(n).toLocaleString('en-LK');}
+function fmtDate(iso){if(!iso)return '—';const d=new Date(iso);return d.toLocaleDateString('en-LK',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-LK',{hour:'2-digit',minute:'2-digit'});}
+function pad2(n){return n.toString().padStart(2,'0');}
+function fmtTime(secs){if(!secs&&secs!==0)return '—';const m=Math.floor(secs/60),s=secs%60;return pad2(m)+'m '+pad2(s)+'s';}
+function tierLabel(d){if(d>=70)return '🥇 Gold';if(d>=60)return '🥈 Silver';if(d>=50)return '🥉 Bronze';return 'None';}
+function tierClass(d){if(d>=70)return 'gold';if(d>=60)return 'silver';if(d>=50)return 'bronze';return 'none';}
+
+function refreshAll(){
+  renderKPIs();
+  renderGroupChart();
+  renderScoreChart();
+  renderRecentTable();
+  renderRegTable(getRegs());
+  renderResTable(getResults());
+  renderFeeSummary();
+  updateExportBadges();
+}
+
+// ── KPIs ─────────────────────────────────────────────────────────────────────
+function renderKPIs(){
+  const regs=getRegs(),results=getResults();
+  const completed=regs.filter(r=>r.examStatus==='completed').length;
+  const goldCount=results.filter(r=>r.discount>=70).length;
+  const totalRevenue=results.reduce((s,r)=>s+(r.payableFee||0),0);
+  const avgScore=results.length?Math.round(results.reduce((s,r)=>s+r.score,0)/results.length):0;
+  document.getElementById('kpiGrid').innerHTML=`
+    <div class="kpi-card teal">
+      <div class="kpi-val">${regs.length}</div>
+      <div class="kpi-lbl">Total Registrations</div>
+      <div class="kpi-sub">${completed} completed exam</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-val">${results.length}</div>
+      <div class="kpi-lbl">Exams Submitted</div>
+      <div class="kpi-sub">${regs.length-completed} awaiting</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-val">${avgScore}%</div>
+      <div class="kpi-lbl">Average Score</div>
+      <div class="kpi-sub">${goldCount} Gold tier scholars</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-val">${fmtMoney(totalRevenue)}</div>
+      <div class="kpi-lbl">Est. Revenue</div>
+      <div class="kpi-sub">After all discounts applied</div>
+    </div>
+  `;
+}
+
+// ── CHARTS ───────────────────────────────────────────────────────────────────
+function renderGroupChart(){
+  const regs=getRegs();
+  const groups=[['56','Tiny Explorers'],['79','Little Explorers'],['1012','AI Builders'],['1315','AI Innovators'],['1617','AI Pioneers']];
+  const max=Math.max(1,...groups.map(([k])=>regs.filter(r=>r.ageGroup===k).length));
+  document.getElementById('groupBarChart').innerHTML=groups.map(([k,name])=>{
+    const c=regs.filter(r=>r.ageGroup===k).length;
+    const pct=Math.round(c/max*100);
+    return `<div class="bar-row">
+      <div class="bar-label">${name}</div>
+      <div class="bar-outer"><div class="bar-inner" style="width:${pct}%">${c>0?c:''}</div></div>
+      <div class="bar-val">${c}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderScoreChart(){
+  const results=getResults();
+  const bands=[['80–100%','gold',r=>r.score>=80],['70–79%','silver',r=>r.score>=70&&r.score<80],
+               ['60–69%','bronze',r=>r.score>=60&&r.score<70],['Below 60%','none',r=>r.score<60]];
+  const max=Math.max(1,...bands.map(([,,f])=>results.filter(f).length));
+  document.getElementById('scoreBarChart').innerHTML=bands.map(([label,tier,f])=>{
+    const c=results.filter(f).length;
+    const pct=Math.round(c/max*100);
+    const colours={'gold':'var(--gold)','silver':'var(--blue)','bronze':'var(--amber)','none':'var(--muted)'};
+    return `<div class="bar-row">
+      <div class="bar-label">${label}</div>
+      <div class="bar-outer"><div class="bar-inner" style="width:${pct}%;background:${colours[tier]}">${c>0?c:''}</div></div>
+      <div class="bar-val">${c}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── RECENT TABLE ──────────────────────────────────────────────────────────────
+function renderRecentTable(){
+  const regs=[...getRegs()].reverse().slice(0,5);
+  if(!regs.length){document.getElementById('recentTable').innerHTML='<div class="empty-state"><p>No registrations yet.</p></div>';return;}
+  document.getElementById('recentTable').innerHTML=`<table class="data-table">
+    <thead><tr><th>Index No.</th><th>Name</th><th>Group</th><th>Exam Status</th><th>Registered</th></tr></thead>
+    <tbody>${regs.map(r=>`<tr>
+      <td class="index-cell">${r.indexNumber}</td>
+      <td>${r.firstName} ${r.lastName}</td>
+      <td><span class="badge badge-teal" style="font-size:.6rem">${GROUP_NAMES[r.ageGroup]||r.ageGroup}</span></td>
+      <td><span class="badge ${r.examStatus==='completed'?'badge-green':'badge-amber'}">${r.examStatus==='completed'?'Completed':'Pending'}</span></td>
+      <td style="color:var(--muted)">${fmtDate(r.registeredAt)}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+// ── REGISTRATIONS TABLE ───────────────────────────────────────────────────────
+let filteredRegs=[];
+function renderRegTable(data){
+  filteredRegs=data;
+  const tbody=document.getElementById('regTbody');
+  const empty=document.getElementById('regEmpty');
+  if(!data.length){tbody.innerHTML='';empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+  tbody.innerHTML=data.map(r=>`<tr>
+    <td class="index-cell">${r.indexNumber||'—'}</td>
+    <td>${r.firstName||''} ${r.lastName||''}</td>
+    <td><span class="badge badge-teal" style="font-size:.6rem">${GROUP_NAMES[r.ageGroup]||r.ageGroup}</span></td>
+    <td>${r.dob||'—'}</td>
+    <td>${r.school||'—'}</td>
+    <td style="font-family:monospace">${r.parentNIC||'—'}</td>
+    <td>${r.parentPhone||'—'}</td>
+    <td>${r.district||'—'}</td>
+    <td><span class="badge ${r.examStatus==='completed'?'badge-green':'badge-amber'}" style="font-size:.6rem">${r.examStatus==='completed'?'Completed':'Pending'}</span></td>
+    <td style="color:var(--muted);font-size:.65rem">${fmtDate(r.registeredAt)}</td>
+  </tr>`).join('');
+}
+function filterRegs(){
+  const q=document.getElementById('regSearch').value.toLowerCase();
+  const grp=document.getElementById('regGroupFilter').value;
+  const st=document.getElementById('regStatusFilter').value;
+  let d=getRegs();
+  if(grp)d=d.filter(r=>r.ageGroup===grp);
+  if(st)d=d.filter(r=>r.examStatus===st);
+  if(q)d=d.filter(r=>(r.firstName+' '+r.lastName+r.indexNumber+r.parentNIC).toLowerCase().includes(q));
+  renderRegTable(d);
+}
+
+// ── RESULTS TABLE ─────────────────────────────────────────────────────────────
+let filteredResults=[];
+function renderResTable(data){
+  filteredResults=data;
+  const tbody=document.getElementById('resTbody');
+  const empty=document.getElementById('resEmpty');
+  if(!data.length){tbody.innerHTML='';empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+  tbody.innerHTML=data.map(r=>`<tr>
+    <td class="index-cell">${r.indexNumber}</td>
+    <td>${r.name}</td>
+    <td><span class="badge badge-teal" style="font-size:.6rem">${GROUP_NAMES[r.ageGroup]||r.ageGroup}</span></td>
+    <td><strong style="color:${r.score>=80?'var(--green)':r.score>=60?'var(--primary)':'var(--amber)'}">${r.score}%</strong></td>
+    <td>${r.correct}</td>
+    <td>${r.total}</td>
+    <td>${fmtTime(r.timeTaken)}</td>
+    <td><span class="score-pill ${tierClass(r.discount)}">${tierLabel(r.discount)}</span></td>
+    <td>${fmtMoney(r.baseFee)}</td>
+    <td style="color:var(--green);font-weight:600">${r.discount>0?r.discount+'%':'—'}</td>
+    <td style="font-weight:700;color:var(--primary)">${fmtMoney(r.payableFee)}</td>
+    <td style="color:var(--muted);font-size:.65rem">${fmtDate(r.submittedAt)}</td>
+  </tr>`).join('');
+}
+function filterResults(){
+  const q=document.getElementById('resSearch').value.toLowerCase();
+  const grp=document.getElementById('resGroupFilter').value;
+  const disc=document.getElementById('resDiscountFilter').value;
+  let d=getResults();
+  if(grp)d=d.filter(r=>r.ageGroup===grp);
+  if(disc!=='')d=d.filter(r=>r.discount===parseInt(disc));
+  if(q)d=d.filter(r=>(r.indexNumber+r.name).toLowerCase().includes(q));
+  renderResTable(d);
+}
+
+// ── FEE SUMMARY ───────────────────────────────────────────────────────────────
+function renderFeeSummary(){
+  const results=getResults();
+  const total=results.reduce((s,r)=>s+(r.payableFee||0),0);
+  const totalBase=results.reduce((s,r)=>s+(r.baseFee||0),0);
+  const totalDisc=results.reduce((s,r)=>s+(r.discountAmt||0),0);
+  document.getElementById('feeSummaryBoxes').innerHTML=`
+    <div class="fee-box"><div class="val">${fmtMoney(totalBase)}</div><div class="lbl">Total Base Fees (before discount)</div></div>
+    <div class="fee-box"><div class="val" style="color:var(--green)">${fmtMoney(totalDisc)}</div><div class="lbl">Total Scholarships Awarded</div></div>
+    <div class="fee-box"><div class="val">${fmtMoney(total)}</div><div class="lbl">Total Revenue (after discounts)</div></div>
+  `;
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────────────────────
+function downloadCSV(filename,rows){
+  const csv=rows.map(r=>r.map(c=>'"'+(c===null||c===undefined?'':String(c)).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
+}
+
+function exportRegistrationsCSV(groupFilter){
+  let regs=getRegs();
+  if(groupFilter)regs=regs.filter(r=>r.ageGroup===groupFilter);
+  const fname=groupFilter?`registrations_${GROUP_NAMES[groupFilter]||groupFilter}.csv`:'registrations_all.csv';
+  const header=['Index Number','First Name','Last Name','DOB','Gender','Age Group','School','Grade',
+    'Parent Name','Relation','Parent NIC','Mobile','Email','Address','City','District','Exam Status','Registered At'];
+  const rows=[header,...regs.map(r=>[r.indexNumber,r.firstName,r.lastName,r.dob,r.gender,
+    GROUP_NAMES[r.ageGroup]||r.ageGroup,r.school,r.grade,r.parentName,r.parentRelation,
+    r.parentNIC,r.parentPhone,r.parentEmail,r.address,r.city,r.district,r.examStatus,r.registeredAt])];
+  downloadCSV(fname,rows);
+}
+
+function exportGroupCSV(group){exportRegistrationsCSV(group);}
+
+function exportResultsCSV(){
+  const results=getResults();
+  const header=['Index Number','Student Name','Age Group','Score %','Correct','Total Questions',
+    'Time Taken (s)','Scholarship Tier','Base Fee (LKR)','Discount %','Discount Amount (LKR)',
+    'Payable Fee (LKR)','Submitted At'];
+  const rows=[header,...results.map(r=>[r.indexNumber,r.name,GROUP_NAMES[r.ageGroup]||r.ageGroup,
+    r.score,r.correct,r.total,r.timeTaken,tierLabel(r.discount),r.baseFee,r.discount,r.discountAmt,r.payableFee,r.submittedAt])];
+  downloadCSV('exam_results.csv',rows);
+}
+
+function exportDiscountCSV(tier){
+  const results=getResults().filter(r=>r.discount===parseInt(tier));
+  const header=['Index Number','Student Name','Age Group','Score %','Base Fee (LKR)','Discount %','Payable Fee (LKR)'];
+  const rows=[header,...results.map(r=>[r.indexNumber,r.name,GROUP_NAMES[r.ageGroup]||r.ageGroup,r.score,r.baseFee,r.discount,r.payableFee])];
+  downloadCSV(`results_${tierLabel(parseInt(tier)).replace(/[^a-z0-9]/gi,'_')}.csv`,rows);
+}
+
+function exportCombinedCSV(){
+  const regs=getRegs();const results=getResults();
+  const resMap={};results.forEach(r=>{resMap[r.indexNumber]=r;});
+  const header=['Index Number','Student Name','Age Group','DOB','Gender','School','District',
+    'Parent Name','Parent NIC','Mobile','Email','Exam Status',
+    'Score %','Scholarship Tier','Base Fee (LKR)','Discount %','Payable Fee (LKR)','Submitted At'];
+  const rows=[header,...regs.map(r=>{
+    const res=resMap[r.indexNumber]||{};
+    return [r.indexNumber,r.firstName+' '+r.lastName,GROUP_NAMES[r.ageGroup]||r.ageGroup,
+      r.dob,r.gender,r.school,r.district,r.parentName,r.parentNIC,r.parentPhone,r.parentEmail,
+      r.examStatus,res.score||'',res.discount!=null?tierLabel(res.discount):'',
+      GROUP_FEES[r.ageGroup]||'',res.discount||'',res.payableFee||'',res.submittedAt||''];
+  })];
+  downloadCSV('combined_report.csv',rows);
+}
+
+function updateExportBadges(){
+  document.getElementById('regCountBadge').textContent=getRegs().length+' records';
+  document.getElementById('resCountBadge').textContent=getResults().length+' records';
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+const panelTitles={overview:'Dashboard Overview',registrations:'Registrations',
+  results:'Exam Results',fees:'Fee Structure & Summary',export:'Export Data as CSV'};
+const panelSubs={overview:'AIC Aptitude Exam Portal 2026 — Live Data',
+  registrations:'All student registrations',results:'Completed aptitude exam results',
+  fees:'Age group fees and scholarship tiers',export:'Download data as CSV files'};
+function showPanel(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('panelTitle').textContent=panelTitles[id]||id;
+  document.getElementById('panelSub').textContent=panelSubs[id]||'';
+  if(id==='registrations')filterRegs();
+  if(id==='results')filterResults();
+  if(id==='fees')renderFeeSummary();
+  if(id==='export')updateExportBadges();
+}
+function refreshAll(){renderKPIs();renderGroupChart();renderScoreChart();renderRecentTable();renderRegTable(getRegs());renderResTable(getResults());renderFeeSummary();updateExportBadges();}
+
+// ── SAMPLE DATA ───────────────────────────────────────────────────────────────
+function loadSampleData(){
+  const names=[['Kavinda','Perera','56','Male','2020-03-15','Grade 1','Richmond College','94771234567','nimal.perera@gmail.com','815234567V','No. 12 Galle Rd','Colombo','Colombo'],
+    ['Sithumi','Silva','79','Female','2018-06-22','Grade 3','Visakha Vidyalaya','94775678901','kumari.silva@yahoo.com','199012345678','No. 45 Kandy Rd','Kandy','Kandy'],
+    ['Dulshan','Fernando','1012','Male','2015-09-10','Grade 6','Nalanda College','94701234567','priya.fernando@gmail.com','198567890V','No. 78 Gampaha Rd','Gampaha','Gampaha'],
+    ['Nethmi','Jayawardena','1315','Female','2011-12-05','Grade 10','Girls High School','94762345678','chamari.jayawardena@hotmail.com','199734567891','No. 23 Ratnapura Rd','Ratnapura','Ratnapura'],
+    ['Asel','Bandara','1617','Male','2009-02-28','Grade 11','Dharmaraja College','94753456789','saman.bandara@gmail.com','198890123V','No. 56 Kurunegala Rd','Kurunegala','Kurunegala']];
+  const regs=[];const results=[];
+  names.forEach(([fn,ln,ag,gender,dob,grade,school,phone,email,nic,addr,city,dist],i)=>{
+    const idx=generateIndexNumber(i);
+    const score=50+Math.floor(Math.random()*50);
+    const disc=getDiscount(score);
+    const fee=GROUP_FEES[ag]||40000;
+    const discAmt=Math.round(fee*(disc/100));
+    regs.push({indexNumber:idx,firstName:fn,lastName:ln,ageGroup:ag,gender,dob,grade,school,
+      parentName:'Sample Parent',parentRelation:'Father',parentNIC:nic,parentPhone:phone,
+      parentEmail:email,address:addr,city,district:dist,registeredAt:new Date(Date.now()-i*86400000).toISOString(),
+      examStatus:'completed'});
+    const qTotal={'56':15,'79':20,'1012':30,'1315':40,'1617':40}[ag]||20;
+    results.push({indexNumber:idx,name:fn+' '+ln,ageGroup:ag,score,correct:Math.round(score/100*qTotal),
+      total:qTotal,timeTaken:900+Math.floor(Math.random()*900),discount:disc,baseFee:fee,
+      discountAmt:discAmt,payableFee:fee-discAmt,submittedAt:new Date(Date.now()-i*86400000+3600000).toISOString()});
+  });
+  localStorage.setItem('aic_registrations',JSON.stringify(regs));
+  localStorage.setItem('aic_exam_results',JSON.stringify(results));
+  refreshAll();
+  alert('Sample data loaded! 5 registrations + 5 results added.');
+}
+function clearAllData(){
+  if(confirm('Delete ALL registrations and results? This cannot be undone.')){
+    localStorage.removeItem('aic_registrations');
+    localStorage.removeItem('aic_exam_results');
+    refreshAll();
+  }
+}
+
+// Init
+if(sessionStorage.getItem('aic_admin_auth')==='1')refreshAll();
+</script>
+</body>
+</html>
