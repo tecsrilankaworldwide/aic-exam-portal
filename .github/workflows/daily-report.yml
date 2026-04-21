@@ -1,0 +1,72 @@
+name: Daily Admin Report
+
+on:
+  schedule:
+    # 8:00 PM Sri Lanka time = 2:30 PM UTC (UTC+5:30)
+    - cron: '30 14 * * *'
+  workflow_dispatch:   # allow manual trigger from GitHub UI for testing
+
+permissions:
+  contents: read
+
+jobs:
+  send-report:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      # ── 1. Checkout source ───────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Generate combined_report.csv from localStorage data ───────────────
+      # Note: Since the portal uses localStorage (browser-side storage),
+      # this step generates a placeholder CSV to confirm the workflow runs.
+      # For a real data pipeline, connect a backend DB or Google Sheets.
+      # The CSV structure matches exactly what the admin dashboard exports.
+      - name: Generate report CSV
+        run: |
+          DATE=$(date '+%Y-%m-%d %H:%M +0530' --date='+5 hours 30 minutes')
+          echo "AIC Exam Portal — Daily Report" > combined_report.csv
+          echo "Generated: $DATE" >> combined_report.csv
+          echo "" >> combined_report.csv
+          echo "Index No,Student Name,Age Group,Parent NIC,Phone,Registered At,Score %,Tier,Discount %,Base Fee (LKR),Payable Fee (LKR)" >> combined_report.csv
+          echo "" >> combined_report.csv
+          echo "--- Data is stored in student browsers (localStorage) ---" >> combined_report.csv
+          echo "--- Use Admin Dashboard to export live data: ---" >> combined_report.csv
+          echo "--- https://tecsrilankaworldwide.github.io/aic-exam-portal/admin.html ---" >> combined_report.csv
+
+      # ── 3. Send email via Gmail ───────────────────────────────────────────────
+      - name: Send daily report email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "AIC Exam Portal — Daily Report ${{ env.REPORT_DATE }}"
+          to: ontransitions@gmail.com
+          from: "AIC Admin <${{ secrets.GMAIL_USER }}>"
+          body: |
+            Daily AIC Exam Portal Report
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
+            Hi Admin,
+            
+            Your daily AIC Exam Portal report is attached.
+            
+            To export live student data:
+            1. Open the Admin Dashboard
+               https://tecsrilankaworldwide.github.io/aic-exam-portal/admin.html
+            2. Password: AIC@2026
+            3. Click Export → Download combined_report.csv
+            
+            ──────────────────────────────
+            AI Generation Programme 2026
+            aigeneration.uk
+            Certificate Authority: TWL UK
+          attachments: combined_report.csv
+          
+      - name: Log success
+        run: echo "✅ Daily report sent to ontransitions@gmail.com"
