@@ -1,44 +1,120 @@
 name: Deploy AIC Exam Portal
 
+# ── Triggers ──────────────────────────────────────────────────────────────────
+#
+# PRIMARY: workflow_run — fires only after "Validate Portal" completes on main.
+#   The deploy job inside checks that the validate run actually SUCCEEDED before
+#   deploying, so a failed validation blocks deployment automatically.
+#
+#   This covers both paths to main:
+#     • A PR that was validated and then merged  → validate runs on merge commit
+#       → this workflow fires → deploy job checks validate passed → deploys.
+#     • A direct push to main (hotfix)           → same sequence.
+#
+# SECONDARY: workflow_dispatch — allows a one-click manual deploy from the
+#   GitHub Actions UI (useful if Pages needs a forced refresh, DNS changes, etc.)
+#   Manual runs bypass the validate-success gate intentionally, but the
+#   deploy job still runs validate itself as a safety net (see step 2 below).
+#
 on:
-  push:
+  workflow_run:
+    workflows: ["Validate Portal"]
+    types: [completed]
     branches: [main]
-  workflow_dispatch:   # allow manual trigger from GitHub UI
+
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual deploy'
+        required: false
+        default: 'Manual trigger'
 
 permissions:
   contents: write      # needed to push to gh-pages branch
+  actions:  read       # needed to read workflow_run conclusion
 
 jobs:
   deploy:
+    name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     environment: production
 
+    # ── Gate: only deploy if validate passed (or this is a manual run) ────────
+    # For workflow_run events: skip if the upstream validate run did not succeed.
+    # For workflow_dispatch: always proceed (operator is making a deliberate call).
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success')
+
     steps:
-      # ── 1. Checkout source ───────────────────────────────────────────────────
+      # ── 1. Checkout source ────────────────────────────────────────────────────
+      #   workflow_run doesn't automatically check out the triggering commit,
+      #   so we explicitly pin to main.
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0        # full history so peaceiris can push cleanly
 
-      # ── 2. Inject secrets into app.js at build time ─────────────────────────
-      #   PROXY_ENDPOINT is stored as a GitHub Secret — never in source code.
-      #   The build step replaces the placeholder token with the real value.
-      - name: Inject Cloudflare Worker proxy URL
+      # ── 2. Re-run validator as a deploy-time safety net ───────────────────────
+      #   Guarantees the code on main is clean even on manual deploys or if the
+      #   validate workflow was modified since the last run.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate portal before deploying
+        run: node scripts/validate.js
+
+      # ── 3. Inject PROXY_ENDPOINT secret into app.js ───────────────────────────
+      #   The secret holds the live Namecheap PHP proxy URL.
+      #   If the secret is not set the portal falls back to simulation mode
+      #   (OTP is faked in-browser) — staging still works, just no real SMS.
+      - name: Inject proxy endpoint
         env:
           PROXY_ENDPOINT: ${{ secrets.PROXY_ENDPOINT }}
         run: |
           if [ -z "$PROXY_ENDPOINT" ]; then
-            echo "⚠️  PROXY_ENDPOINT secret not set — portal will run in simulation mode"
+            echo "⚠️  PROXY_ENDPOINT secret not set — portal will run in simulation mode on Pages"
           else
-            echo "✅ Injecting PROXY_ENDPOINT into app.js"
+            echo "✅ Injecting PROXY_ENDPOINT into js/app.js"
             sed -i "s|__PROXY_ENDPOINT__|${PROXY_ENDPOINT}|g" js/app.js
           fi
 
-      # ── 3. Deploy to GitHub Pages (gh-pages branch) ──────────────────────────
+      # ── 4. Deploy to GitHub Pages (gh-pages branch) ───────────────────────────
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
-          exclude_assets: '.github,README.md,build.sh'
-          commit_message: "Deploy: ${{ github.sha }} — ${{ github.event.head_commit.message }}"
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
+          github_token:    ${{ secrets.GITHUB_TOKEN }}
+          publish_dir:     ./
+          exclude_assets:  '.github,scripts,README.md,CONTRIBUTING.md'
+          commit_message:  >
+            Deploy: ${{ github.sha }} — validated + deployed
+          user_name:       'github-actions[bot]'
+          user_email:      'github-actions[bot]@users.noreply.github.com'
+
+      # ── 5. Write deploy summary ───────────────────────────────────────────────
+      - name: Write job summary
+        if: always()
+        run: |
+          echo "## Deploy Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "**Trigger:** Manual — ${{ github.event.inputs.reason }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Trigger:** Automatic after Validate Portal passed on \`main\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Staging URL:** https://tecsrilankaworldwide.github.io/aic-exam-portal/" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployed successfully." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Deploy failed — see steps above." >> $GITHUB_STEP_SUMMARY
+          fi
