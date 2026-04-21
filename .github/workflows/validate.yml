@@ -1,0 +1,68 @@
+name: Validate Portal
+
+# ── Triggers ──────────────────────────────────────────────────────────────────
+# Runs on every pull request that touches any of the three source files
+# that the validator checks. Also runs on direct pushes to main so you
+# catch regressions even without a PR (e.g. a direct hotfix push).
+on:
+  pull_request:
+    paths:
+      - 'js/app.js'
+      - 'js/questions.js'
+      - 'admin.html'
+      - 'scripts/validate.js'
+  push:
+    branches:
+      - main
+    paths:
+      - 'js/app.js'
+      - 'js/questions.js'
+      - 'admin.html'
+      - 'scripts/validate.js'
+
+jobs:
+  validate:
+    name: Question bank & fee constants
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Node.js setup ─────────────────────────────────────────────────────
+      # validate.js uses only Node built-ins (fs, path, vm) — no npm install needed.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── 3. Run validator ──────────────────────────────────────────────────────
+      - name: Run portal validator
+        run: node scripts/validate.js
+
+      # ── 4. Annotate PR with failure summary (only on PRs) ────────────────────
+      # If the validator exits 1, the step above already fails the job.
+      # This step runs only on PR events and always executes so the
+      # job summary is visible even on success.
+      - name: Write job summary
+        if: always() && github.event_name == 'pull_request'
+        run: |
+          echo "## Portal Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Ran \`scripts/validate.js\` against:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`js/app.js\` — AGE_GROUP_FEES, AGE_GROUP_LABELS" >> $GITHUB_STEP_SUMMARY
+          echo "- \`js/questions.js\` — QUESTION_BANK, Q_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "- \`admin.html\` — GROUP_FEES, GROUP_NAMES" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ All checks passed." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Validation failed — see logs above for details." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Common causes:**" >> $GITHUB_STEP_SUMMARY
+            echo "- Fee changed in \`app.js\` but not updated in \`admin.html\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Question added with wrong \`ans\` letter (must be A/B/C/D)" >> $GITHUB_STEP_SUMMARY
+            echo "- Question \`opts\` array has fewer or more than 4 items" >> $GITHUB_STEP_SUMMARY
+            echo "- New age group added to \`app.js\` but not to \`questions.js\` (or vice versa)" >> $GITHUB_STEP_SUMMARY
+          fi
