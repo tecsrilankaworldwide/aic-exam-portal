@@ -3,13 +3,11 @@
 //          index number generation, localStorage helpers, discount calculation
 
 // ── CONFIGURATION ─────────────────────────────────────────────────────────────
-// ⚠ SETUP REQUIRED: Register at https://app.notify.lk and fill in your credentials below.
-// Leave NOTIFY_USER_ID and NOTIFY_API_KEY as empty strings to use simulation mode (for testing).
+// OTP is sent via a Cloudflare Worker proxy — credentials are stored server-side
+// as Cloudflare Secrets, never exposed in the browser.
+// Proxy URL: update PROXY_ENDPOINT below after deploying the Cloudflare Worker.
 const NOTIFY_CONFIG = {
-  USER_ID: '31549',
-  API_KEY: 'qBrNNQ2qe7iPvqQRphWi',
-  SERVICE_ID: 'NotifyDEMO',
-  ENDPOINT: 'https://app.notify.lk/api/v1/send'
+  PROXY_ENDPOINT: 'https://otp-proxy.tecsrilankaworldwide.workers.dev'
 };
 
 // ── NIC VALIDATION ─────────────────────────────────────────────────────────────
@@ -68,49 +66,38 @@ function generateIndexNumber(count) {
  * Returns { ok: boolean, msg: string, simulated: boolean }
  */
 async function sendOTP(phone, otp, studentName) {
-  const isConfigured = NOTIFY_CONFIG.USER_ID && NOTIFY_CONFIG.API_KEY;
+  const message = `Dear Parent/Guardian, Your AIC Aptitude Exam OTP for ${studentName} is: ${otp}. Valid for 10 minutes. Do not share. - AI Generation Programme`;
 
-  const message = `Dear Parent/Guardian,\nYour AIC Aptitude Exam OTP for ${studentName} is: ${otp}\nValid for 10 minutes. Do not share with anyone.\n- AI Curriculum Programme`;
+  // Convert SL phone 07XXXXXXXX → 947XXXXXXXX for Notify.lk
+  const toNumber = '94' + phone.replace(/^0/, '');
 
-  if (!isConfigured) {
-    // Simulation mode — OTP is shown on-screen in dev hint
+  const proxyEndpoint = NOTIFY_CONFIG.PROXY_ENDPOINT;
+
+  // Simulation mode — if proxy not yet deployed
+  if (!proxyEndpoint || proxyEndpoint.includes('YOUR-SUBDOMAIN')) {
     console.info('[AIC OTP SIMULATION] OTP:', otp, '| Phone:', phone);
     sessionStorage.setItem('aic_otp_simulated', 'true');
-    return { ok: true, msg: 'OTP simulated (API not configured)', simulated: true };
+    return { ok: true, msg: 'OTP simulated (proxy not yet deployed)', simulated: true };
   }
 
   try {
-    // Notify.lk API call via a CORS proxy approach
-    // The direct browser call may hit CORS — in production, route through a small backend
-    const params = new URLSearchParams({
-      user_id: NOTIFY_CONFIG.USER_ID,
-      api_key: NOTIFY_CONFIG.API_KEY,
-      service_id: NOTIFY_CONFIG.SERVICE_ID,
-      to: phone,
-      message: message
+    const response = await fetch(proxyEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: toNumber, message })
     });
-
-    const response = await fetch(`${NOTIFY_CONFIG.ENDPOINT}?${params.toString()}`, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
 
     const data = await response.json();
-    // Notify.lk returns { status: 'success', ... } or { status: 'error', message: '...' }
+
     if (data.status === 'success' || data.status === 1 || data.status === '1') {
       return { ok: true, msg: 'OTP sent successfully', simulated: false };
     } else {
-      return { ok: false, msg: data.message || 'Failed to send OTP via Notify.lk', simulated: false };
+      return { ok: false, msg: data.message || 'Failed to send OTP', simulated: false };
     }
   } catch (err) {
     console.error('[AIC OTP ERROR]', err);
-    // Fallback to simulation if network call fails
     sessionStorage.setItem('aic_otp_simulated', 'true');
-    return { ok: true, msg: 'OTP simulated (network error)', simulated: true };
+    return { ok: true, msg: 'OTP simulated (proxy unreachable)', simulated: true };
   }
 }
 
