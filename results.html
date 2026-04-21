@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Results — AIC Aptitude Exam 2026</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .results-page{padding-block:var(--s10)}
+  /* Lookup section */
+  .lookup-card{max-width:460px;margin:0 auto;text-align:center}
+  .lookup-card h2{font-size:var(--text-xl);font-weight:700;margin-bottom:var(--s3)}
+  .lookup-card p{color:var(--muted);font-size:var(--text-sm);margin-bottom:var(--s6)}
+  /* Results layout */
+  .results-wrap{max-width:680px;margin:0 auto}
+  .result-header{text-align:center;margin-bottom:var(--s8)}
+  .result-header h1{font-size:var(--text-xl);font-weight:700;margin-bottom:var(--s2)}
+  .result-header p{color:var(--muted);font-size:var(--text-sm)}
+  /* Score ring */
+  .score-section{display:flex;flex-direction:column;align-items:center;margin-bottom:var(--s8)}
+  /* Discount */
+  .no-discount{text-align:center;background:var(--surface-off);border:1px solid var(--border);
+    border-radius:var(--r-2xl);padding:var(--s8);margin:var(--s6) 0}
+  .no-discount h3{font-size:var(--text-lg);font-weight:700;margin-bottom:var(--s2)}
+  .no-discount p{color:var(--muted);font-size:var(--text-sm)}
+  /* Score breakdown by topic */
+  .topic-bar-item{margin-bottom:var(--s4)}
+  .topic-bar-header{display:flex;justify-content:space-between;font-size:var(--text-xs);
+    font-weight:600;margin-bottom:var(--s2)}
+  .topic-bar-outer{height:8px;background:var(--surface-off);border-radius:var(--r-full)}
+  .topic-bar-inner{height:8px;background:var(--primary);border-radius:var(--r-full);transition:width .6s}
+  /* Application form */
+  .app-form{border:2px solid var(--border);border-radius:var(--r-2xl);padding:var(--s8);
+    margin-top:var(--s8);position:relative;overflow:hidden}
+  .app-form .watermark{position:absolute;inset:0;display:flex;align-items:center;
+    justify-content:center;font-size:4rem;font-weight:900;opacity:.04;
+    color:var(--primary);pointer-events:none;transform:rotate(-15deg)}
+  /* Payment slip */
+  .slip{border:2px dashed var(--border);border-radius:var(--r-2xl);padding:var(--s8);
+    margin-top:var(--s6);position:relative;overflow:hidden}
+  .slip-header{display:flex;align-items:center;gap:var(--s4);margin-bottom:var(--s6);
+    padding-bottom:var(--s4);border-bottom:2px solid var(--primary)}
+  .slip-logo{width:48px;height:48px;border-radius:var(--r-lg);background:var(--primary);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .slip-title{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700}
+  .slip-subtitle{font-size:var(--text-xs);color:var(--muted)}
+  .slip-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4) var(--s6);margin-bottom:var(--s6)}
+  @media(max-width:480px){.slip-grid{grid-template-columns:1fr}}
+  .slip-field .lbl{font-size:var(--text-xs);color:var(--muted);margin-bottom:var(--s1)}
+  .slip-field .val{font-weight:600;font-size:var(--text-sm);color:var(--text)}
+  .slip-amount{text-align:center;background:linear-gradient(135deg,var(--primary) 0%,var(--teal-h,#0c4e54) 100%);
+    color:#fff;border-radius:var(--r-xl);padding:var(--s6);margin-bottom:var(--s4)}
+  .slip-amount .amt{font-family:var(--font-display);font-size:var(--text-2xl);font-weight:700}
+  .slip-amount .lbl{font-size:var(--text-xs);opacity:.8;margin-top:var(--s2)}
+  .slip-note{font-size:var(--text-xs);color:var(--muted);text-align:center;margin-top:var(--s4)}
+  .print-actions{display:flex;gap:var(--s3);flex-wrap:wrap;justify-content:center;margin-top:var(--s6)}
+  /* Tier indicator */
+  .tier-badge{display:inline-flex;align-items:center;gap:var(--s2);
+    padding:var(--s2) var(--s5);border-radius:var(--r-full);font-weight:700;font-size:var(--text-sm);margin-bottom:var(--s2)}
+  .tier-badge.gold{background:var(--gold-bg);color:var(--gold)}
+  .tier-badge.silver{background:var(--blue-bg);color:var(--blue)}
+  .tier-badge.bronze{background:var(--amber-bg);color:var(--amber)}
+  .tier-badge.none{background:var(--surface-off);color:var(--muted)}
+  /* Lookup form elements */
+  .lookup-input-group{display:flex;gap:var(--s3);margin-top:var(--s4)}
+  .lookup-input-group input{flex:1;padding:var(--s3) var(--s4);border:1.5px solid var(--border);
+    border-radius:var(--r-lg);background:var(--surface-2);color:var(--text);font-size:var(--text-base)}
+  .lookup-input-group input:focus{border-color:var(--primary);outline:none}
+  /* Print styles */
+  @media print{
+    .site-header,.stepper,.no-print,.print-actions,.lookup-section,button{display:none!important}
+    body{background:#fff;color:#000}
+    .card,.app-form,.slip{box-shadow:none;border:1px solid #ccc;border-radius:4px}
+    .discount-hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .slip-amount{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .score-ring svg circle{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<header class="site-header no-print">
+  <div class="wrap--wide header-inner">
+    <a href="index.html" class="logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="var(--primary)"/>
+        <path d="M16 6 L8 22 L12 22 L14 17 L18 17 L20 22 L24 22 Z M14.5 14 L16 10.5 L17.5 14 Z" fill="white"/>
+        <circle cx="24" cy="10" r="3" fill="#4fc3ca"/>
+      </svg>
+      <span>AIC&nbsp;<span style="font-weight:400;color:var(--muted)">Aptitude Exam</span></span>
+    </a>
+    <button class="theme-btn" data-theme-toggle aria-label="Toggle dark mode">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="results-page">
+  <div class="wrap">
+
+    <div class="stepper no-print">
+      <div class="step done"><div class="step-num">✓</div><div class="step-label">Register</div><div class="step-line"></div></div>
+      <div class="step done"><div class="step-num">✓</div><div class="step-label">Verify OTP</div><div class="step-line"></div></div>
+      <div class="step done"><div class="step-num">✓</div><div class="step-label">Exam</div><div class="step-line"></div></div>
+      <div class="step active done"><div class="step-num">✓</div><div class="step-label">Results</div></div>
+    </div>
+
+    <!-- LOOKUP (when no active session) -->
+    <div id="lookupSection" class="card lookup-card no-print" style="display:none">
+      <h2>Retrieve Your Results</h2>
+      <p>Enter your Index Number to view your results, application form, and payment slip.</p>
+      <div class="field">
+        <label for="lookupIndex">Index Number</label>
+        <div class="lookup-input-group">
+          <input type="text" id="lookupIndex" placeholder="AIC-2026-0001">
+          <button class="btn btn-primary" onclick="lookupResult()">Retrieve</button>
+        </div>
+      </div>
+      <div id="lookupError" class="alert alert-error mt4" style="display:none">No record found for this index number.</div>
+    </div>
+
+    <!-- RESULTS (shown after lookup or direct session) -->
+    <div id="resultsSection" style="display:none">
+
+      <div class="results-wrap">
+
+        <!-- Score card -->
+        <div class="card" style="margin-bottom:var(--s6)">
+          <div class="result-header">
+            <div id="langSwitcherRes" class="lang-switcher" style="justify-content:center;margin-bottom:var(--s4)"></div>
+            <div class="badge badge-teal" id="r_groupBadge" style="margin:0 auto var(--s3)"></div>
+            <h1 id="resultsHeading">Aptitude Exam Results</h1>
+            <p>AIC Programme Aptitude Examination 2026 · <span style="color:var(--primary);font-weight:600">🇬🇧 Certified by TWL UK</span></p>
+          </div>
+
+          <!-- Score ring -->
+          <div class="score-section">
+            <div class="score-ring">
+              <svg width="140" height="140" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="58" fill="none" stroke="var(--surface-off)" stroke-width="12"/>
+                <circle cx="70" cy="70" r="58" fill="none" stroke="var(--primary)" stroke-width="12"
+                  stroke-linecap="round" id="scoreArc"
+                  stroke-dasharray="364.42" stroke-dashoffset="364.42"
+                  style="transition:stroke-dashoffset 1.2s cubic-bezier(.16,1,.3,1)"/>
+              </svg>
+              <div class="score-ring-text">
+                <div class="score-ring-pct" id="r_score">—%</div>
+                <div class="score-ring-lbl">Score</div>
+              </div>
+            </div>
+            <div style="margin-top:var(--s4)">
+              <div id="tierBadge" class="tier-badge none">—</div>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="result-stats">
+            <div class="stat-box">
+              <div class="val" id="r_correct">—</div>
+              <div class="lbl">Correct</div>
+            </div>
+            <div class="stat-box">
+              <div class="val" id="r_wrong">—</div>
+              <div class="lbl">Incorrect</div>
+            </div>
+            <div class="stat-box">
+              <div class="val" id="r_time">—</div>
+              <div class="lbl">Time Taken</div>
+            </div>
+          </div>
+
+          <!-- Performance by topic -->
+          <div id="topicSection" style="margin-top:var(--s6)">
+            <div style="font-size:var(--text-sm);font-weight:700;margin-bottom:var(--s5)">Performance by Topic</div>
+            <div id="topicBars"></div>
+          </div>
+        </div>
+
+        <!-- Discount / Fee section -->
+        <div id="discountSection" class="card" style="margin-bottom:var(--s6)">
+          <!-- filled by JS -->
+        </div>
+
+        <!-- Application Form -->
+        <div class="app-form print-page" id="appForm">
+          <div class="watermark">AIC 2026</div>
+          <div class="print-header">
+            <div>
+              <div class="print-title">Application for Admission</div>
+              <div style="font-size:var(--text-xs);color:var(--muted)">AI Curriculum Programme 2026 · Confidential</div>
+            </div>
+            <svg width="48" height="48" viewBox="0 0 32 32" fill="none">
+              <rect width="32" height="32" rx="8" fill="var(--primary)"/>
+              <path d="M16 6 L8 22 L12 22 L14 17 L18 17 L20 22 L24 22 Z M14.5 14 L16 10.5 L17.5 14 Z" fill="white"/>
+              <circle cx="24" cy="10" r="3" fill="#4fc3ca"/>
+            </svg>
+          </div>
+          <div id="appFormRows"><!-- filled by JS --></div>
+          <div style="margin-top:var(--s8);display:grid;grid-template-columns:1fr 1fr;gap:var(--s8)">
+            <div>
+              <div style="border-top:1px solid var(--border);padding-top:var(--s3);font-size:var(--text-xs);color:var(--muted)">Student / Parent Signature &amp; Date</div>
+            </div>
+            <div>
+              <div style="border-top:1px solid var(--border);padding-top:var(--s3);font-size:var(--text-xs);color:var(--muted)">AIC Centre Stamp &amp; Authorised Signature</div>
+            </div>
+          </div>
+          <div style="margin-top:var(--s6);padding:var(--s4);background:var(--surface-off);border-radius:var(--r-lg);font-size:var(--text-xs);color:var(--muted)">
+            <strong>Instructions:</strong> Please bring this form along with the payment slip and original NIC of the parent/guardian to your nearest AIC centre. 
+            Photo ID of the student and one recent passport-sized photograph are also required.
+          </div>
+        </div>
+
+        <!-- Payment Slip -->
+        <div class="slip print-page" id="paySlip">
+          <div class="watermark" style="opacity:.04;transform:rotate(-10deg)">PAYMENT</div>
+          <div class="slip-header">
+            <div class="slip-logo">
+              <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+                <path d="M16 3 L5 22 L9 22 L12 16 L20 16 L23 22 L27 22 Z M12.5 13 L16 7.5 L19.5 13 Z" fill="white"/>
+              </svg>
+            </div>
+            <div>
+              <div class="slip-title">Course Fee Payment Slip</div>
+              <div class="slip-subtitle">AI Curriculum Programme 2026 — Retain for your records</div>
+            </div>
+          </div>
+          <div class="slip-grid" id="slipGrid"><!-- filled by JS --></div>
+          <div class="slip-amount">
+            <div class="lbl">Total Payable Amount</div>
+            <div class="amt" id="slipAmount">LKR —</div>
+            <div class="lbl" id="slipDiscountLine">—</div>
+          </div>
+          <table class="fee-table" id="feeTable"></table>
+          <div class="slip-note" id="slipNote">
+            Payment can be made at any AIC centre or via bank transfer. Keep this slip as proof of payment. Monthly instalments available — please inquire at the centre.
+          </div>
+        </div>
+
+        <!-- TWL UK Certificate Banner -->
+        <div class="twl-banner no-print" style="margin-top:var(--s6)">
+          <div class="twl-logo">
+            <svg width="36" height="36" viewBox="0 0 32 32" fill="none">
+              <rect width="32" height="32" rx="6" fill="#1a3a5c"/>
+              <text x="16" y="22" text-anchor="middle" fill="white" font-weight="900" font-size="13" font-family="sans-serif">TWL</text>
+            </svg>
+          </div>
+          <div class="twl-body">
+            <div class="twl-title">International Certificate — TWL UK</div>
+            <div class="twl-text" id="twlCertText">Upon successful completion of the 40-week AI Curriculum Programme, students receive an internationally recognised certificate issued by TWL (The Worldwide Learning), United Kingdom.</div>
+            <div class="twl-badge">🇬🇧 The Worldwide Learning, UK &nbsp;·&nbsp; International Certificate</div>
+          </div>
+        </div>
+
+        <!-- TWL note inside printable form (visible on print) -->
+        <div class="alert alert-info" style="margin-top:var(--s4)">
+          🏃 <span id="twlPrintNote">Upon completion of the 40-week programme, students receive an internationally recognised certificate from TWL (The Worldwide Learning), United Kingdom.</span>
+        </div>
+
+        <div class="print-actions no-print">
+          <button class="btn btn-primary" onclick="window.print()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print / Save as PDF
+          </button>
+          <button class="btn btn-ghost" onclick="window.location.href='index.html'">
+            Register Another Student
+          </button>
+        </div>
+
+      </div>
+    </div><!-- /resultsSection -->
+
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  // i18n init
+  renderLangSwitcher('langSwitcherRes');
+  if(document.getElementById('twlCertText'))document.getElementById('twlCertText').textContent='Upon successful completion of the 40-week AI Curriculum Programme, students receive an internationally recognised certificate issued by TWL (The Worldwide Learning), United Kingdom.';
+  if(document.getElementById('twlPrintNote'))document.getElementById('twlPrintNote').textContent='Upon completion of the 40-week programme, students receive an internationally recognised certificate from TWL (The Worldwide Learning), United Kingdom.';
+</script>
+<script>
+  (function(){
+    const t=document.querySelector('[data-theme-toggle]'),r=document.documentElement;
+    let d=localStorage.getItem('aic_theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+    r.setAttribute('data-theme',d);
+    updateIcon(t,d);
+    t&&t.addEventListener('click',()=>{d=d==='dark'?'light':'dark';r.setAttribute('data-theme',d);localStorage.setItem('aic_theme',d);updateIcon(t,d);});
+    function updateIcon(btn,theme){if(!btn)return;btn.innerHTML=theme==='dark'?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>':'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';}
+  })();
+
+  const groupNames={'56':'Tiny Explorers','79':'Little Explorers','1012':'AI Builders','1315':'AI Innovators','1617':'AI Pioneers'};
+
+  // Try to load result from session first, then fallback to lookup
+  const latestResult=JSON.parse(sessionStorage.getItem('aic_latest_result')||'null');
+  if(latestResult){
+    showResults(latestResult);
+  } else {
+    document.getElementById('lookupSection').style.display='block';
+  }
+
+  function lookupResult(){
+    const idx=document.getElementById('lookupIndex').value.trim().toUpperCase();
+    const all=JSON.parse(localStorage.getItem('aic_exam_results')||'[]');
+    const found=all.find(r=>r.indexNumber===idx);
+    if(found){
+      document.getElementById('lookupSection').style.display='none';
+      showResults(found);
+    } else {
+      document.getElementById('lookupError').style.display='flex';
+    }
+  }
+
+  function pad2(n){return n.toString().padStart(2,'0');}
+  function formatTime(secs){const m=Math.floor(secs/60),s=secs%60;return pad2(m)+'m '+pad2(s)+'s';}
+  function formatMoney(n){return 'LKR '+n.toLocaleString('en-LK');}
+
+  function showResults(r){
+    document.getElementById('resultsSection').style.display='block';
+    document.getElementById('lookupSection').style.display='none';
+
+    // Group badge
+    document.getElementById('r_groupBadge').textContent=groupNames[r.ageGroup]||r.ageGroup;
+
+    // Score
+    document.getElementById('r_score').textContent=r.score+'%';
+    document.getElementById('r_correct').textContent=r.correct;
+    document.getElementById('r_wrong').textContent=(r.total-r.correct);
+    document.getElementById('r_time').textContent=formatTime(r.timeTaken||0);
+
+    // Animate arc
+    const circ=364.42;
+    setTimeout(()=>{
+      document.getElementById('scoreArc').style.strokeDashoffset=circ-(circ*r.score/100);
+      const color=r.score>=80?'var(--green)':r.score>=60?'var(--primary)':'var(--amber)';
+      document.getElementById('scoreArc').style.stroke=color;
+    },200);
+
+    // Tier badge
+    const tb=document.getElementById('tierBadge');
+    if(r.discount===70){tb.className='tier-badge gold';tb.textContent='🥇 Gold Tier — 70% Scholarship';}
+    else if(r.discount===60){tb.className='tier-badge silver';tb.textContent='🥈 Silver Tier — 60% Scholarship';}
+    else if(r.discount===50){tb.className='tier-badge bronze';tb.textContent='🥉 Bronze Tier — 50% Scholarship';}
+    else{tb.className='tier-badge none';tb.textContent='Participation — Full Fee Applies';}
+
+    // Topic breakdown
+    if(r.questions&&r.answers){
+      const topics={};
+      r.questions.forEach((q,i)=>{
+        if(!topics[q.topic])topics[q.topic]={correct:0,total:0};
+        topics[q.topic].total++;
+        if(r.answers[i]===q.ans)topics[q.topic].correct++;
+      });
+      const barsEl=document.getElementById('topicBars');
+      barsEl.innerHTML='';
+      Object.entries(topics).sort((a,b)=>b[1].correct/b[1].total-a[1].correct/a[1].total).forEach(([topic,data])=>{
+        const pct=Math.round(data.correct/data.total*100);
+        barsEl.innerHTML+=`<div class="topic-bar-item">
+          <div class="topic-bar-header"><span>${topic}</span><span>${data.correct}/${data.total} (${pct}%)</span></div>
+          <div class="topic-bar-outer"><div class="topic-bar-inner" style="width:${pct}%"></div></div>
+        </div>`;
+      });
+    }
+
+    // Discount section
+    const ds=document.getElementById('discountSection');
+    if(r.discount>0){
+      ds.innerHTML=`
+        <div class="discount-hero">
+          <div style="font-size:var(--text-sm);opacity:.8;margin-bottom:var(--s2);letter-spacing:.08em;text-transform:uppercase">
+            🎉 Scholarship Awarded
+          </div>
+          <div class="discount-pct">${r.discount}% OFF</div>
+          <div class="discount-label">Congratulations! You have earned a ${r.discount}% scholarship on the course fee.</div>
+        </div>
+        <table class="fee-table">
+          <tr class="strike"><td>Base Course Fee (Annual)</td><td>${formatMoney(r.baseFee)}</td></tr>
+          <tr><td>Scholarship Discount (${r.discount}%)</td><td style="color:var(--green)">− ${formatMoney(r.discountAmt)}</td></tr>
+          <tr class="total"><td>Your Payable Fee</td><td>${formatMoney(r.payableFee)}</td></tr>
+        </table>
+        <div class="alert alert-info mt4">ℹ️ Monthly instalment plans are available. Please inquire at your nearest AIC centre for details.</div>
+      `;
+    } else {
+      ds.innerHTML=`
+        <div class="no-discount">
+          <h3>Course Fee</h3>
+          <p>Your score did not qualify for a scholarship discount this time. The full course fee applies. 
+          You are still welcome to enrol in the programme!</p>
+          <table class="fee-table" style="margin-top:var(--s4)">
+            <tr class="total"><td>Annual Course Fee</td><td>${formatMoney(r.baseFee)}</td></tr>
+          </table>
+          <div class="alert alert-info" style="margin-top:var(--s4);text-align:left">ℹ️ Monthly instalment plans available. Ask at your nearest AIC centre.</div>
+        </div>
+      `;
+    }
+
+    // Application form rows
+    const reg=JSON.parse(localStorage.getItem('aic_registrations')||'[]').find(x=>x.indexNumber===r.indexNumber)||{};
+    const submittedDate=new Date(r.submittedAt).toLocaleDateString('en-LK',{day:'numeric',month:'long',year:'numeric'});
+    document.getElementById('appFormRows').innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s3) var(--s6);margin-bottom:var(--s4)">
+        ${row('Index Number',r.indexNumber)}
+        ${row('Submission Date',submittedDate)}
+        ${row('Full Name (Student)',r.name)}
+        ${row('Age Group',groupNames[r.ageGroup]||r.ageGroup)}
+        ${row('Date of Birth',reg.dob||'—')}
+        ${row('Gender',reg.gender||'—')}
+        ${row('School / Institute',reg.school||'—')}
+        ${row('Current Grade',reg.grade||'—')}
+        ${row('Parent / Guardian',reg.parentName||'—')}
+        ${row('Relationship',reg.parentRelation||'—')}
+        ${row('Parent NIC',reg.parentNIC||'—')}
+        ${row('Mobile Number',reg.parentPhone||'—')}
+        ${row('Email Address',reg.parentEmail||'—')}
+        ${row('Address',reg.address&&reg.city?reg.address+', '+reg.city+(reg.district?', '+reg.district:''):'—')}
+        ${row('Aptitude Score',r.score+'% ('+r.correct+'/'+r.total+')')}
+        ${row('Scholarship Tier',r.discount>0?r.discount+'% Discount':'None — Full Fee')}
+      </div>
+    `;
+
+    // Payment slip
+    document.getElementById('slipGrid').innerHTML=`
+      ${slipField('Index Number',r.indexNumber)}
+      ${slipField('Student Name',r.name)}
+      ${slipField('Age Group',groupNames[r.ageGroup]||r.ageGroup)}
+      ${slipField('Exam Score',r.score+'%')}
+      ${slipField('Discount Tier',r.discount>0?r.discount+'% Scholarship':'No Discount')}
+      ${slipField('Date Issued',submittedDate)}
+    `;
+    document.getElementById('slipAmount').textContent=formatMoney(r.payableFee);
+    document.getElementById('slipDiscountLine').textContent=r.discount>0?
+      'After '+r.discount+'% scholarship on base fee of '+formatMoney(r.baseFee):
+      'No discount applied';
+    document.getElementById('feeTable').innerHTML=`
+      <tr><td>Base Annual Fee</td><td style="text-align:right">${formatMoney(r.baseFee)}</td></tr>
+      ${r.discount>0?`<tr><td>Scholarship (${r.discount}%)</td><td style="text-align:right;color:var(--green)">− ${formatMoney(r.discountAmt)}</td></tr>`:''}
+      <tr style="font-weight:700;color:var(--primary)"><td>Total Payable</td><td style="text-align:right">${formatMoney(r.payableFee)}</td></tr>
+    `;
+  }
+
+  function row(label,value){
+    return `<div class="print-row"><div class="label">${label}</div><div class="value">${value||'—'}</div></div>`;
+  }
+  function slipField(label,value){
+    return `<div class="slip-field"><div class="lbl">${label}</div><div class="val">${value||'—'}</div></div>`;
+  }
+</script>
+</body>
+</html>

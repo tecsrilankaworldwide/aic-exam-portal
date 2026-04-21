@@ -1,0 +1,436 @@
+// ── AIC Exam Portal — Trilingual Strings ─────────────────────────────────────
+// Languages: English (en), Sinhala (si), Tamil (ta)
+
+const I18N = {
+
+  en: {
+    lang: 'en',
+    langName: 'English',
+    flag: '🇬🇧',
+
+    // Registration page
+    regTitle: 'Student Registration',
+    regSub: 'Register for the AI Curriculum Aptitude Examination 2026 · One registration per NIC',
+    selectAgeGroup: 'Select Age Group',
+    studentInfo: 'Student Information',
+    parentInfo: 'Parent / Guardian Details',
+    addressSection: 'Address',
+    declaration: 'Declaration',
+    declarationText: 'I confirm that all information provided is accurate. I understand that one registration is allowed per NIC number, and the registration is for an aptitude examination for the <strong>AI Curriculum Programme 2026</strong>.',
+    sendOtp: 'Send OTP & Continue',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    dob: 'Date of Birth',
+    gender: 'Gender',
+    genderM: 'Male', genderF: 'Female', genderO: 'Other / Prefer not to say',
+    school: 'School / Institute',
+    grade: 'Current Grade / Year',
+    parentName: 'Full Name',
+    relation: 'Relationship',
+    relFather: 'Father', relMother: 'Mother', relGuardian: 'Guardian',
+    parentNIC: 'NIC Number',
+    mobile: 'Mobile Number',
+    mobileSub: 'Sri Lanka mobile number — OTP will be sent here via SMS.',
+    email: 'Email Address',
+    address: 'Street Address',
+    city: 'City / Town',
+    district: 'District',
+
+    // OTP page
+    otpTitle: 'OTP Sent!',
+    otpSub: 'We sent a 6-digit verification code via SMS to:',
+    otpVerify: 'Verify & Proceed to Exam',
+    otpBack: '← Go back & edit registration',
+    otpResend: 'Resend in',
+    otpResendBtn: 'Resend OTP',
+    otpExpired: '⏱ OTP has expired. Please request a new one.',
+    otpWrong: '❌ Incorrect OTP. Please check and try again.',
+    devHintTitle: '🔧 Development Mode',
+    devHintSub: 'Notify.lk API key not configured — OTP shown for testing only.',
+
+    // Exam page
+    examTitle: 'AIC Aptitude Exam 2026',
+    questionOf: 'Question {n} of {total}',
+    submitExam: 'Submit Exam',
+    confirmSubmit: 'Submit Exam?',
+    confirmMsg: 'You have answered <strong>{answered}</strong> of <strong>{total}</strong> questions. Unanswered questions will be marked incorrect. Are you sure?',
+    reviewBtn: 'Review Answers',
+    yesSubmit: 'Yes, Submit',
+    timesUp: "Time's Up!",
+    timesUpSub: 'Your exam has been automatically submitted.',
+    viewResults: 'View My Results',
+    answered: 'Answered',
+    remaining: 'Remaining',
+    indexNo: 'Index No.',
+    previous: '← Previous',
+    next: 'Next →',
+    instrTitle: 'Instructions',
+    instrLines: [
+      'Read each question carefully before selecting your answer.',
+      'You may navigate between questions using the Previous / Next buttons or the question palette.',
+      'The exam will auto-submit when the 30-minute timer expires.',
+      'Once submitted, answers cannot be changed.',
+      'Select your language above before starting.'
+    ],
+
+    // Pending page
+    pendingTitle: 'Exam Submitted Successfully!',
+    pendingSub: 'Your answers have been recorded. Your official results will be available tomorrow morning. Please save your Index Number.',
+    indexLabel: 'Your Registration Index Number',
+    indexSub: 'Keep this number safe — required for results retrieval',
+    studentName: 'Student Name',
+    ageGroup: 'Age Group',
+    submittedAt: 'Submitted At',
+    qCount: 'Questions Answered',
+    screenshotNote: '📲 Screenshot or write down your Index Number',
+    screenshotSub: 'Your index number is saved in this browser, but clearing browser data may lose it.',
+    whatsNext: 'What happens next?',
+    viewResultsBtn: 'View My Results Now',
+    printBtn: 'Print This Page',
+
+    // Results page
+    resultsTitle: 'Aptitude Exam Results',
+    resultsSub: 'AIC Programme Aptitude Examination 2026 · Certified by TWL UK',
+    lookupTitle: 'Retrieve Your Results',
+    lookupSub: 'Enter your Index Number to view your results, application form, and payment slip.',
+    lookupBtn: 'Retrieve',
+    lookupErr: 'No record found for this index number.',
+    scoreLabel: 'Score',
+    correct: 'Correct',
+    incorrect: 'Incorrect',
+    timeTaken: 'Time Taken',
+    topicPerf: 'Performance by Topic',
+    schAwarded: '🎉 Scholarship Awarded',
+    schCongrats: 'Congratulations! You have earned a {pct}% scholarship on the course fee.',
+    instalment: 'ℹ️ Monthly instalment plans available. Please inquire at your nearest AIC centre.',
+    noDiscount: 'Course Fee',
+    noDiscountSub: 'Your score did not qualify for a scholarship discount. The full course fee applies. You are still welcome to enrol!',
+    appFormTitle: 'Application for Admission',
+    appFormSub: 'AI Curriculum Programme 2026 · Certified by TWL, UK · Confidential',
+    slipTitle: 'Course Fee Payment Slip',
+    slipSub: 'AI Curriculum Programme 2026 — Retain for your records',
+    twlNote: '🎓 Upon successful completion of the 40-week programme, students will receive an internationally recognised certificate issued by TWL (The Worldwide Learning), United Kingdom.',
+    printSave: 'Print / Save as PDF',
+    registerAnother: 'Register Another Student',
+    instructions: 'Instructions: Please bring this form along with the payment slip and original NIC of the parent/guardian to your nearest AIC centre. Photo ID of the student and one recent passport-sized photograph are also required.',
+    payNote: 'Payment can be made at any AIC centre or via bank transfer. Keep this slip as proof of payment. Monthly instalments available — please inquire at the centre.',
+
+    // Tiers
+    gold: '🥇 Gold Tier — 70% Scholarship',
+    silver: '🥈 Silver Tier — 60% Scholarship',
+    bronze: '🥉 Bronze Tier — 50% Scholarship',
+    noTier: 'Participation — Full Fee Applies',
+    baseFeeLabel: 'Base Course Fee (Annual)',
+    discountLabel: 'Scholarship Discount',
+    payableLabel: 'Your Payable Fee',
+
+    // Age Group Names
+    group56: 'Tiny Explorers',
+    group79: 'Little Explorers',
+    group1012: 'AI Builders',
+    group1315: 'AI Innovators',
+    group1617: 'AI Pioneers',
+    groupRange56: 'Ages 5–6',
+    groupRange79: 'Ages 7–9',
+    groupRange1012: 'Ages 10–12',
+    groupRange1315: 'Ages 13–15',
+    groupRange1617: 'Ages 16–17',
+
+    // Steps
+    step1: 'Register', step2: 'Verify OTP', step3: 'Exam', step4: 'Results',
+  },
+
+  si: {
+    lang: 'si',
+    langName: 'සිංහල',
+    flag: '🇱🇰',
+
+    regTitle: 'සිසු ලියාපදිංචිය',
+    regSub: 'AI Curriculum Aptitude විභාගය 2026 සඳහා ලියාපදිංචි වන්න · එක් NIC අංකයකට එක් ලියාපදිංචියක් පමණි',
+    selectAgeGroup: 'වයස් කාණ්ඩය තෝරන්න',
+    studentInfo: 'සිසු තොරතුරු',
+    parentInfo: 'දෙමාපිය / භාරකාර තොරතුරු',
+    addressSection: 'ලිපිනය',
+    declaration: 'ප්‍රකාශය',
+    declarationText: 'ලබාදුන් සියලු තොරතුරු නිවැරදි බව මම තහවුරු කරමි. <strong>AI Curriculum Programme 2026</strong> සඳහා එක් NIC අංකයකට එක් ලියාපදිංචියක් පමණක් ඉඩ ඇති බව මම දනිමි.',
+    sendOtp: 'OTP යවා ඉදිරියට යන්න',
+    firstName: 'මුල් නම',
+    lastName: 'අවසාන නම',
+    dob: 'උපන් දිනය',
+    gender: 'ලිංගය',
+    genderM: 'පිරිමි', genderF: 'ගැහැනු', genderO: 'වෙනත්',
+    school: 'පාසල / ආයතනය',
+    grade: 'පන්තිය',
+    parentName: 'සම්පූර්ණ නම',
+    relation: 'සම්බන්ධතාව',
+    relFather: 'පියා', relMother: 'මව', relGuardian: 'භාරකාරයා',
+    parentNIC: 'ජාතික හැඳුනුම්පත් අංකය',
+    mobile: 'ජංගම දුරකතන අංකය',
+    mobileSub: 'ශ්‍රී ලංකා ජංගම අංකය — OTP SMS මගින් යවනු ලැබේ.',
+    email: 'විද්‍යුත් තැපෑල',
+    address: 'වීදි ලිපිනය',
+    city: 'නගරය',
+    district: 'දිස්ත්‍රික්කය',
+
+    otpTitle: 'OTP යවා ඇත!',
+    otpSub: 'SMS මගින් ඔබේ ජංගම දුරකතනයට 6 ඉලක්කම් කේතයක් යවා ඇත:',
+    otpVerify: 'තහවුරු කර විභාගයට ඉදිරිපත් වන්න',
+    otpBack: '← ලියාපදිංචියට ආපසු',
+    otpResend: 'නැවත යවන්න',
+    otpResendBtn: 'OTP නැවත යවන්න',
+    otpExpired: '⏱ OTP කාලය ඉකුත් වී ඇත. නව OTP ඉල්ලන්න.',
+    otpWrong: '❌ වැරදි OTP. නැවත පරීක්ෂා කරන්න.',
+    devHintTitle: '🔧 සංවර්ධන ආකාරය',
+    devHintSub: 'Notify.lk API key සකසා නැත — OTP මෙතන පෙනේ.',
+
+    examTitle: 'AIC Aptitude විභාගය 2026',
+    questionOf: 'ප්‍රශ්නය {n} / {total}',
+    submitExam: 'විභාගය ඉදිරිපත් කරන්න',
+    confirmSubmit: 'විභාගය ඉදිරිපත් කරන්නද?',
+    confirmMsg: 'ඔබ <strong>{answered}</strong> / <strong>{total}</strong> ප්‍රශ්නවලට පිළිතුරු දී ඇත. ඉතිරි ප්‍රශ්න වැරදි ලෙස සලකුණු වේ.',
+    reviewBtn: 'ප්‍රශ්න නැවත බලන්න',
+    yesSubmit: 'ඔව්, ඉදිරිපත් කරන්න',
+    timesUp: 'කාලය ඉකුත් විය!',
+    timesUpSub: 'ඔබේ විභාගය ස්වයංක්‍රීයව ඉදිරිපත් කරන ලදී.',
+    viewResults: 'ප්‍රතිඵල බලන්න',
+    answered: 'පිළිතුරු දුන්',
+    remaining: 'ඉතිරි',
+    indexNo: 'දර්ශක අංකය',
+    previous: '← පෙර',
+    next: 'ඊළඟ →',
+    instrTitle: 'උපදෙස්',
+    instrLines: [
+      'පිළිතුර තේරීමට පෙර සෑම ප්‍රශ්නයක්ම හොඳින් කියවන්න.',
+      'ප්‍රශ්න palette හෝ ඊළඟ/පෙර බොත්තම් භාවිතා කරන්න.',
+      'මිනිත්තු 30 ගතවූ විට විභාගය ස්වයංක්‍රීයව ඉදිරිපත් වේ.',
+      'ඉදිරිපත් කළ පසු පිළිතුරු වෙනස් කළ නොහැක.',
+      'ආරම්භ කිරීමට පෙර ඔබේ භාෂාව තෝරන්න.'
+    ],
+
+    pendingTitle: 'විභාගය සාර්ථකව ඉදිරිපත් කරන ලදී!',
+    pendingSub: 'ඔබේ පිළිතුරු සටහන් කරන ලදී. නිල ප්‍රතිඵල හෙට උදෑසන ලැබේ. ඔබේ දර්ශක අංකය සුරකින්න.',
+    indexLabel: 'ඔබේ ලියාපදිංචි දර්ශක අංකය',
+    indexSub: 'ප්‍රතිඵල ලබා ගැනීමට මෙම අංකය අවශ්‍යයි',
+    studentName: 'සිසු නම',
+    ageGroup: 'වයස් කාණ්ඩය',
+    submittedAt: 'ඉදිරිපත් කළ වේලාව',
+    qCount: 'පිළිතුරු දුන් ප්‍රශ්න',
+    screenshotNote: '📲 ඔබේ දර්ශක අංකය screenshot කරන්න',
+    screenshotSub: 'Browser data ඉවත් කළ හොත් අංකය නැති විය හැකිය.',
+    whatsNext: 'ඉදිරියේ සිදු වන්නේ කුමක්ද?',
+    viewResultsBtn: 'ප්‍රතිඵල දැන් බලන්න',
+    printBtn: 'මෙම පිටුව මුද්‍රණය කරන්න',
+
+    resultsTitle: 'Aptitude විභාග ප්‍රතිඵල',
+    resultsSub: 'AIC Programme Aptitude Examination 2026 · TWL UK සහතිකය',
+    lookupTitle: 'ඔබේ ප්‍රතිඵල සොයන්න',
+    lookupSub: 'ඔබේ දර්ශක අංකය ඇතුළු කර ප්‍රතිඵල, ඉල්ලුම්පත සහ ගෙවීම් ලිපිය ලබා ගන්න.',
+    lookupBtn: 'සොයන්න',
+    lookupErr: 'මෙම දර්ශක අංකය සඳහා ලේඛනයක් හමු නොවීය.',
+    scoreLabel: 'ලකුණු',
+    correct: 'නිවැරදි',
+    incorrect: 'වැරදි',
+    timeTaken: 'ගත වූ කාලය',
+    topicPerf: 'විෂය අනුව කාර්යසාධනය',
+    schAwarded: '🎉 ශිෂ්‍යත්වය ලබා දෙන ලදී',
+    schCongrats: 'සුභ පැතුම්! ඔබ {pct}% ශිෂ්‍යත්වයකට සුදුස්සා ලෙස සිටී.',
+    instalment: 'ℹ️ මාසික වාරික ක්‍රම ඇත. ඔබේ AIC මධ්‍යස්ථානයෙන් විමසන්න.',
+    noDiscount: 'පාඨමාලා ගාස්තු',
+    noDiscountSub: 'ශිෂ්‍යත්ව වට්ටමකට සුදුසු ලකුණු නොලැබුණි. සම්පූර්ණ ගාස්තු ක්‍රියාත්මක වේ.',
+    appFormTitle: 'ඇතුළත් වීමේ ඉල්ලුම්පත',
+    appFormSub: 'AI Curriculum Programme 2026 · TWL, UK සහතිකය · රහසිගත',
+    slipTitle: 'පාඨමාලා ගාස්තු ගෙවීම් ලිය',
+    slipSub: 'AI Curriculum Programme 2026 — ඔබ සතු ලේඛනයක් ලෙස තබා ගන්න',
+    twlNote: '🎓 සති 40 ක වැඩසටහන සාර්ථකව නිම කළ සිසුනට TWL (The Worldwide Learning), United Kingdom ලබාදෙන ජාත්‍යන්තරව පිළිගත් සහතිකයක් ලබා ගත හැකිය.',
+    printSave: 'මුද්‍රණය / PDF ලෙස සුරකින්න',
+    registerAnother: 'තවත් සිසුවෙකු ලියාපදිංචි කරන්න',
+    instructions: 'උපදෙස්: ඉල්ලුම්පත, ගෙවීම් ලිය සහ දෙමාපිය/භාරකාරයාගේ NIC ද රැගෙන ළඟම AIC මධ්‍යස්ථානයට පැමිණෙන්න. සිසුගේ ඡායාරූප ID සහ ගමන් බලපත්‍ර ඡායාරූපයක් ද ගෙන ඒම අවශ්‍ය වේ.',
+    payNote: 'ගෙවීම AIC මධ්‍යස්ථානයේ හෝ බැංකු හරහා කළ හැකිය. ගෙවීම් ලිය ඔබ සතුව තබා ගන්න. මාසික වාරික ක්‍රම ඇත.',
+
+    gold: '🥇 රන් පදවිය — 70% ශිෂ්‍යත්වය',
+    silver: '🥈 රිදී පදවිය — 60% ශිෂ්‍යත්වය',
+    bronze: '🥉 ලෝකඩ පදවිය — 50% ශිෂ්‍යත්වය',
+    noTier: 'සහභාගිත්ව — සම්පූර්ණ ගාස්තු',
+    baseFeeLabel: 'මූලික වාර්ෂික ගාස්තුව',
+    discountLabel: 'ශිෂ්‍යත්ව වට්ටම',
+    payableLabel: 'ගෙවිය යුතු ගාස්තුව',
+
+    // Age Group Names
+    group56: 'කුඩා ගවේෂකයන්',
+    group79: 'ළිතිලේ ගවේෂකයන්',
+    group1012: 'AI නිර්මාණකරුවන්',
+    group1315: 'AI නව්‍යකරුවන්',
+    group1617: 'AI පුරෝගාමීන්',
+    groupRange56: 'වයස 5–6',
+    groupRange79: 'වයස 7–9',
+    groupRange1012: 'වයස 10–12',
+    groupRange1315: 'වයස 13–15',
+    groupRange1617: 'වයස 16–17',
+
+    step1: 'ලියාපදිංචිය', step2: 'OTP තහවුරු', step3: 'විභාගය', step4: 'ප්‍රතිඵල',
+  },
+
+  ta: {
+    lang: 'ta',
+    langName: 'தமிழ்',
+    flag: '🇱🇰',
+
+    regTitle: 'மாணவர் பதிவு',
+    regSub: 'AI Curriculum தகுதித் தேர்வு 2026 — ஒரு NIC எண்ணுக்கு ஒரு பதிவு மட்டுமே',
+    selectAgeGroup: 'வயது குழுவை தேர்ந்தெடுக்கவும்',
+    studentInfo: 'மாணவர் விவரங்கள்',
+    parentInfo: 'பெற்றோர் / பாதுகாவலர் விவரங்கள்',
+    addressSection: 'முகவரி',
+    declaration: 'அறிவிப்பு',
+    declarationText: 'வழங்கப்பட்ட தகவல்கள் அனைத்தும் சரியானவை என்று உறுதிப்படுத்துகிறேன். <strong>AI Curriculum Programme 2026</strong>க்கு ஒரு NIC எண்ணுக்கு ஒரு பதிவு மட்டுமே அனுமதிக்கப்படும்.',
+    sendOtp: 'OTP அனுப்பி தொடரவும்',
+    firstName: 'முதல் பெயர்',
+    lastName: 'கடைசி பெயர்',
+    dob: 'பிறந்த தேதி',
+    gender: 'பாலினம்',
+    genderM: 'ஆண்', genderF: 'பெண்', genderO: 'மற்றவை',
+    school: 'பள்ளி / நிறுவனம்',
+    grade: 'வகுப்பு',
+    parentName: 'முழு பெயர்',
+    relation: 'உறவுமுறை',
+    relFather: 'தந்தை', relMother: 'தாய்', relGuardian: 'பாதுகாவலர்',
+    parentNIC: 'தேசிய அடையாள அட்டை எண்',
+    mobile: 'கைபேசி எண்',
+    mobileSub: 'இலங்கை மொபைல் எண் — OTP SMS மூலம் அனுப்பப்படும்.',
+    email: 'மின்னஞ்சல் முகவரி',
+    address: 'தெரு முகவரி',
+    city: 'நகரம்',
+    district: 'மாவட்டம்',
+
+    otpTitle: 'OTP அனுப்பப்பட்டது!',
+    otpSub: 'SMS மூலம் 6 இலக்க குறியீடு அனுப்பப்பட்டது:',
+    otpVerify: 'சரிபார்த்து தேர்வுக்கு செல்லவும்',
+    otpBack: '← திரும்பி பதிவை திருத்தவும்',
+    otpResend: 'மீண்டும் அனுப்ப',
+    otpResendBtn: 'OTP மீண்டும் அனுப்பவும்',
+    otpExpired: '⏱ OTP காலாவதியானது. புதியதை கோரவும்.',
+    otpWrong: '❌ தவறான OTP. மீண்டும் சரிபார்க்கவும்.',
+    devHintTitle: '🔧 சோதனை பயன்முறை',
+    devHintSub: 'Notify.lk API key இல்லை — OTP இங்கே காட்டப்படுகிறது.',
+
+    examTitle: 'AIC தகுதித் தேர்வு 2026',
+    questionOf: 'கேள்வி {n} / {total}',
+    submitExam: 'தேர்வை சமர்ப்பிக்கவும்',
+    confirmSubmit: 'தேர்வை சமர்ப்பிக்கவா?',
+    confirmMsg: '<strong>{answered}</strong> / <strong>{total}</strong> கேள்விகளுக்கு பதில் அளித்துள்ளீர்கள். மீதி கேள்விகள் தவறு எனக் கணக்கிடப்படும்.',
+    reviewBtn: 'பதில்களை மறுஆய்வு செய்யவும்',
+    yesSubmit: 'ஆம், சமர்ப்பிக்கவும்',
+    timesUp: 'நேரம் முடிந்தது!',
+    timesUpSub: 'உங்கள் தேர்வு தானாக சமர்ப்பிக்கப்பட்டது.',
+    viewResults: 'முடிவுகளை பார்க்கவும்',
+    answered: 'பதில் அளித்தவை',
+    remaining: 'எஞ்சியவை',
+    indexNo: 'குறியீட்டு எண்',
+    previous: '← முந்தைய',
+    next: 'அடுத்தது →',
+    instrTitle: 'வழிமுறைகள்',
+    instrLines: [
+      'பதில் தேர்ந்தெடுப்பதற்கு முன் ஒவ்வொரு கேள்வியையும் கவனமாக படியுங்கள்.',
+      'முந்தைய/அடுத்தது பொத்தான்கள் அல்லது கேள்வி palette பயன்படுத்தவும்.',
+      '30 நிமிட நேரம் முடிந்தவுடன் தேர்வு தானாக சமர்ப்பிக்கப்படும்.',
+      'சமர்ப்பித்த பிறகு பதில்களை மாற்ற முடியாது.',
+      'தொடங்கும் முன் உங்கள் மொழியை தேர்ந்தெடுக்கவும்.'
+    ],
+
+    pendingTitle: 'தேர்வு வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது!',
+    pendingSub: 'உங்கள் பதில்கள் பதிவு செய்யப்பட்டன. அதிகாரப்பூர்வ முடிவுகள் நாளை காலையில் கிடைக்கும். உங்கள் குறியீட்டு எண்ணை சேமிக்கவும்.',
+    indexLabel: 'உங்கள் பதிவு குறியீட்டு எண்',
+    indexSub: 'முடிவுகளை பெற இந்த எண் தேவை',
+    studentName: 'மாணவர் பெயர்',
+    ageGroup: 'வயது குழு',
+    submittedAt: 'சமர்ப்பித்த நேரம்',
+    qCount: 'பதில் அளித்த கேள்விகள்',
+    screenshotNote: '📲 உங்கள் குறியீட்டு எண்ணை screenshot எடுக்கவும்',
+    screenshotSub: 'Browser data அழித்தால் எண் தொலைந்துவிடலாம்.',
+    whatsNext: 'அடுத்து என்ன நடக்கும்?',
+    viewResultsBtn: 'இப்போது முடிவுகளை பார்க்கவும்',
+    printBtn: 'இந்த பக்கத்தை அச்சிடவும்',
+
+    resultsTitle: 'தகுதித் தேர்வு முடிவுகள்',
+    resultsSub: 'AIC Programme தகுதித் தேர்வு 2026 · TWL UK சான்றிதழ்',
+    lookupTitle: 'உங்கள் முடிவுகளை பெறுங்கள்',
+    lookupSub: 'முடிவுகள், விண்ணப்பப்படிவம் மற்றும் கட்டண சீட்டைப் பெற குறியீட்டு எண்ணை உள்ளிடவும்.',
+    lookupBtn: 'தேட',
+    lookupErr: 'இந்த குறியீட்டு எண்ணுக்கான பதிவு கிடைக்கவில்லை.',
+    scoreLabel: 'மதிப்பெண்',
+    correct: 'சரியானவை',
+    incorrect: 'தவறானவை',
+    timeTaken: 'எடுத்த நேரம்',
+    topicPerf: 'தலைப்பு வாரியான செயல்திறன்',
+    schAwarded: '🎉 உதவித்தொகை வழங்கப்பட்டது',
+    schCongrats: 'வாழ்த்துகள்! {pct}% உதவித்தொகை பெறுவதற்கு தகுதி பெற்றீர்கள்.',
+    instalment: 'ℹ️ மாதாந்திர தவணை திட்டங்கள் உள்ளன. அருகில் உள்ள AIC மையத்தில் விசாரிக்கவும்.',
+    noDiscount: 'பாட கட்டணம்',
+    noDiscountSub: 'உதவித்தொகை தகுதி பெறவில்லை. முழு கட்டணம் பொருந்தும். நீங்கள் சேர்வதை வரவேற்கிறோம்!',
+    appFormTitle: 'சேர்க்கை விண்ணப்பம்',
+    appFormSub: 'AI Curriculum Programme 2026 · TWL, UK சான்றிதழ் · இரகசியம்',
+    slipTitle: 'பாட கட்டண ரசீது',
+    slipSub: 'AI Curriculum Programme 2026 — உங்கள் பதிவிற்கு வைத்திருக்கவும்',
+    twlNote: '🎓 40 வார திட்டத்தை வெற்றிகரமாக முடித்த மாணவர்களுக்கு TWL (The Worldwide Learning), United Kingdom வழங்கும் சர்வதேச அங்கீகாரம் பெற்ற சான்றிதழ் வழங்கப்படும்.',
+    printSave: 'அச்சிடு / PDF ஆக சேமி',
+    registerAnother: 'மற்றொரு மாணவரை பதிவு செய்யவும்',
+    instructions: 'வழிமுறைகள்: விண்ணப்பப்படிவம், கட்டண ரசீது மற்றும் பெற்றோர்/பாதுகாவலரின் NIC ஐ அருகில் உள்ள AIC மையத்தில் சமர்ப்பிக்கவும். மாணவரின் புகைப்படம் கொண்ட அடையாள அட்டை மற்றும் பாஸ்போர்ட் அளவு புகைப்படமும் தேவை.',
+    payNote: 'கட்டணத்தை AIC மையத்தில் அல்லது வங்கி பரிமாற்றம் மூலம் செலுத்தலாம். மாதாந்திர தவணைகள் உள்ளன.',
+
+    gold: '🥇 தங்கம் — 70% உதவித்தொகை',
+    silver: '🥈 வெள்ளி — 60% உதவித்தொகை',
+    bronze: '🥉 வெண்கலம் — 50% உதவித்தொகை',
+    noTier: 'பங்கேற்பு — முழு கட்டணம்',
+    baseFeeLabel: 'அடிப்படை வருடாந்திர கட்டணம்',
+    discountLabel: 'உதவித்தொகை தள்ளுபடி',
+    payableLabel: 'செலுத்த வேண்டிய தொகை',
+
+    // Age Group Names
+    group56: 'சிறிய ஆய்வாளர்கள்',
+    group79: 'இளம் ஆய்வாளர்கள்',
+    group1012: 'AI கட்டமைப்பாளர்கள்',
+    group1315: 'AI புதுமையாளர்கள்',
+    group1617: 'AI முன்னோடிகள்',
+    groupRange56: 'வயது 5–6',
+    groupRange79: 'வயது 7–9',
+    groupRange1012: 'வயது 10–12',
+    groupRange1315: 'வயது 13–15',
+    groupRange1617: 'வயது 16–17',
+
+    step1: 'பதிவு', step2: 'OTP சரிபார்', step3: 'தேர்வு', step4: 'முடிவுகள்',
+  }
+};
+
+// Active language — defaults to English
+let currentLang = localStorage.getItem('aic_lang') || 'en';
+
+function t(key, replacements) {
+  let str = (I18N[currentLang] || I18N.en)[key] || (I18N.en[key]) || key;
+  if (replacements) {
+    Object.entries(replacements).forEach(([k, v]) => {
+      str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+    });
+  }
+  return str;
+}
+
+function setLang(lang) {
+  if (!I18N[lang]) return;
+  currentLang = lang;
+  localStorage.setItem('aic_lang', lang);
+  document.documentElement.lang = lang;
+}
+
+function getLang() { return currentLang; }
+
+// Language switcher HTML (call in each page)
+function renderLangSwitcher(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = ['en','si','ta'].map(l => `
+    <button onclick="setLang('${l}');location.reload()"
+      class="lang-btn${currentLang===l?' active':''}" aria-label="${I18N[l].langName}">
+      ${I18N[l].flag} ${I18N[l].langName}
+    </button>
+  `).join('');
+}
